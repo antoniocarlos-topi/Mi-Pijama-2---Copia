@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Finalizar Compra - MI Pijamas</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="../assets/css/styles.css">
+</head>
+
+<body>
+
+<a class="whats-float" href="https://wa.me/558699700402" target="_blank" rel="noopener noreferrer" aria-label="Falar no WhatsApp">
+  <span class="whats-icon">💬</span>
+  <span class="whats-text">WhatsApp</span>
+</a>
+
+<header class="site-header">
+  <div class="container header-row">
+    <a class="brand" href="../index.html" aria-label="MI Pijamas - Início">
+      <span class="brand-dot"></span>
+      <span class="brand-name">MI Pijamas</span>
+    </a>
+
+    <button
+      class="menu-toggle"
+      type="button"
+      aria-label="Abrir menu"
+      aria-expanded="false"
+      aria-controls="mobile-menu"
+    >
+      <span></span><span></span><span></span>
+    </button>
+
+    <nav class="site-nav desktop-nav" aria-label="Navegação principal">
+      <ul>
+        <li><a href="../index.html">Início</a></li>
+        <li><a href="produtos.html">Pijamas</a></li>
+        <li><a href="sobre.html">Sobre</a></li>
+        <li><a href="contato.html">Contato</a></li>
+        <li>
+          <a class="nav-cart" href="carrinho.html">
+            Carrinho <span class="cart-badge" data-cart-badge aria-label="Itens no carrinho">0</span>
+          </a>
+        </li>
+      </ul>
+    </nav>
+  </div>
+
+  <div class="menu-overlay" data-menu-close></div>
+
+  <aside class="mobile-menu" id="mobile-menu" aria-hidden="true">
+    <div class="mobile-menu-header">
+      <span class="mobile-menu-title">Menu</span>
+
+      <button class="menu-close" type="button" aria-label="Fechar menu" data-menu-close>✕</button>
+    </div>
+
+    <nav class="mobile-nav" aria-label="Menu mobile">
+      <a href="../index.html">Início</a>
+      <a href="produtos.html">Pijamas</a>
+      <a href="sobre.html">Sobre</a>
+      <a href="contato.html">Contato</a>
+      <a class="nav-cart" href="carrinho.html">
+        Carrinho <span class="cart-badge" data-cart-badge>0</span>
+      </a>
+    </nav>
+
+    <div class="mobile-menu-footer">
+      <a class="btn primary" href="produtos.html">Ver Pijamas</a>
+      <a class="btn" href="https://wa.me/558699700402" target="_blank" rel="noopener noreferrer">WhatsApp</a>
+    </div>
+  </aside>
+</header>
+
+<main>
+  <div class="container">
+    <h2>Finalizar Compra</h2>
+
+    <div class="product-detail" style="margin-top:18px;">
+      <!-- Form -->
+      <section class="card" style="padding:24px;">
+        <h3>Seus dados</h3>
+        <p style="margin-top:-4px;">Preencha para enviarmos seu pedido certinho no WhatsApp.</p>
+
+        <form id="checkout-form" style="margin-top:16px;">
+          <div class="form-group">
+            <label for="nome">Nome completo *</label>
+            <input type="text" id="nome" name="nome" required placeholder="Ex: Maria Silva">
+          </div>
+
+          <div class="form-group">
+            <label for="telefone">Telefone/WhatsApp *</label>
+            <input type="tel" id="telefone" name="telefone" required placeholder="(86) 99999-9999">
+          </div>
+
+          <div class="form-group">
+            <label for="endereco">Endereço (opcional)</label>
+            <textarea id="endereco" name="endereco" placeholder="Rua, número, bairro, cidade..."></textarea>
+          </div>
+        </form>
+
+        <div class="actions" style="margin-top:12px;">
+          <a class="btn" href="carrinho.html">Voltar ao carrinho</a>
+        </div>
+      </section>
+
+      <!-- Resumo -->
+      <aside class="order-summary">
+        <h3>Resumo do Pedido</h3>
+        <div id="order-items" style="margin-top:10px;"></div>
+
+        <div style="margin-top:14px;">
+          <p>Subtotal: <span id="subtotal">R$ 0,00</span></p>
+          <p>Total: <span id="total">R$ 0,00</span></p>
+        </div>
+
+        <button id="whatsapp-btn" class="button primary" type="button" style="width:100%; margin-top:10px;">
+          Finalizar no WhatsApp
+        </button>
+
+        <p style="margin-top:10px; font-size:.92rem;">
+          Ao clicar, você envia o pedido com os itens organizados e quantidades certinhas.
+        </p>
+      </aside>
+    </div>
+  </div>
+</main>
+
+<footer>
+  <div class="container">
+    <p>&copy; <span id="year"></span> MI Pijamas. Todos os direitos reservados.</p>
+    <ul>
+      <li><a href="contato.html">Contato</a></li>
+      <li><a href="sobre.html">Sobre Nós</a></li>
+    </ul>
+  </div>
+</footer>
+
+<!-- CTA mobile (corrigido: sem "pages/") -->
+<nav class="mobile-cta" aria-label="Ações rápidas">
+  <a class="mobile-cta__item" href="produtos.html">
+    <span class="mobile-cta__icon">🛍️</span>
+    <span class="mobile-cta__text">Pijamas</span>
+  </a>
+
+  <a class="mobile-cta__item mobile-cta__primary" href="https://wa.me/558699700402" target="_blank" rel="noopener noreferrer">
+    <span class="mobile-cta__icon">💬</span>
+    <span class="mobile-cta__text">WhatsApp</span>
+  </a>
+
+  <a class="mobile-cta__item" href="carrinho.html">
+    <span class="mobile-cta__icon">🧺</span>
+    <span class="mobile-cta__text">Carrinho</span>
+    <span class="mobile-cta__badge" data-cart-badge>0</span>
+  </a>
+</nav>
+
+<script src="../assets/js/supabase.js"></script>
+<script src="../assets/js/data.js"></script>
+<script src="../assets/js/checkout.js"></script>
+<script src="../assets/js/app.js"></script>
+
+</body>
+</html>

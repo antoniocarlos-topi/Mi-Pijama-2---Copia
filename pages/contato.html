@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Contato - MI Pijamas</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="../assets/css/styles.css">
+</head>
+<body>
+
+<a class="whats-float" href="https://wa.me/558699700402" target="_blank" rel="noopener noreferrer" aria-label="Falar no WhatsApp">
+  <span class="whats-icon">💬</span>
+  <span class="whats-text">WhatsApp</span>
+</a>
+
+  <header class="site-header">
+  <div class="container header-row">
+    <a class="brand" href="../index.html" aria-label="MI Pijamas - Início">
+      <span class="brand-dot"></span>
+      <span class="brand-name">MI Pijamas</span>
+    </a>
+
+    <button
+      class="menu-toggle"
+      type="button"
+      aria-label="Abrir menu"
+      aria-expanded="false"
+      aria-controls="mobile-menu"
+    >
+      <span></span><span></span><span></span>
+    </button>
+
+    <nav class="site-nav desktop-nav" aria-label="Navegação principal">
+      <ul>
+        <li><a href="../index.html">Início</a></li>
+        <li><a href="produtos.html">Pijamas</a></li>
+        <li><a href="sobre.html">Sobre</a></li>
+        <li><a href="contato.html">Contato</a></li>
+        <li>
+  <a class="nav-cart" href="carrinho.html">
+    Carrinho <span class="cart-badge" data-cart-badge aria-label="Itens no carrinho">0</span>
+  </a>
+</li>
+      </ul>
+    </nav>
+  </div>
+
+  <!-- Overlay -->
+  <div class="menu-overlay" data-menu-close></div>
+
+  <!-- Menu lateral mobile -->
+  <aside class="mobile-menu" id="mobile-menu" aria-hidden="true">
+    <div class="mobile-menu-header">
+      <span class="mobile-menu-title">Menu</span>
+
+      <button class="menu-close" type="button" aria-label="Fechar menu" data-menu-close>
+        ✕
+      </button>
+    </div>
+
+    <nav class="mobile-nav" aria-label="Menu mobile">
+      <a href="../index.html">Início</a>
+      <a href="produtos.html">Pijamas</a>
+      <a href="sobre.html">Sobre</a>
+      <a href="contato.html">Contato</a>
+      <a class="nav-cart" href="carrinho.html">
+  Carrinho <span class="cart-badge" data-cart-badge>0</span>
+</a>
+    </nav>
+
+    <div class="mobile-menu-footer">
+      <a class="btn primary" href="produtos.html">Ver Pijamas</a>
+      <a class="btn" href="https://wa.me/558699700402" target="_blank">WhatsApp</a>
+    </div>
+  </aside>
+</header>
+
+
+  <main>
+    <div class="container">
+      <h2>Fale com a gente</h2>
+      <section class="contact-section">
+        <h3>WhatsApp</h3>
+        <p>Entre em contato conosco via WhatsApp para dúvidas ou pedidos.</p>
+        <a href="https://wa.me/558699700402" class="btn" target="_blank">Falar no WhatsApp</a>
+      </section>
+      <section class="contact-section">
+        <h3>Instagram</h3>
+        <p>Siga-nos no Instagram para novidades e promoções.</p>
+        <a href="#" class="btn">@mipijamas</a>
+      </section>
+      <section class="contact-form">
+        <h3>Envie uma mensagem</h3>
+        <form>
+          <div class="form-group">
+            <label for="nome">Nome:</label>
+            <input type="text" id="nome" name="nome" required>
+          </div>
+          <div class="form-group">
+            <label for="mensagem">Mensagem:</label>
+            <textarea id="mensagem" name="mensagem" required></textarea>
+          </div>
+          <button type="submit" class="btn">Enviar</button>
+        </form>
+      </section>
+    </div>
+  </main>
+
+  <footer>
+    <div class="container">
+      <p>&copy; <span id="year"></span> MI Pijamas. Todos os direitos reservados.</p>
+      <ul>
+        <li><a href="contato.html">Contato</a></li>
+        <li><a href="sobre.html">Sobre Nós</a></li>
+      </ul>
+    </div>
+  </footer>
+  <nav class="mobile-cta" aria-label="Ações rápidas">
+  <a class="mobile-cta__item" href="produtos.html">
+    <span class="mobile-cta__icon">🛍️</span>
+    <span class="mobile-cta__text">Pijamas</span>
+  </a>
+
+  <a class="mobile-cta__item mobile-cta__primary" href="https://wa.me/558699700402" target="_blank" rel="noopener noreferrer">
+    <span class="mobile-cta__icon">💬</span>
+    <span class="mobile-cta__text">WhatsApp</span>
+  </a>
+
+  <a class="mobile-cta__item" href="carrinho.html">
+    <span class="mobile-cta__icon">🧺</span>
+    <span class="mobile-cta__text">Carrinho</span>
+    <span class="mobile-cta__badge" data-cart-badge>0</span>
+  </a>
+</nav>
+
+  <script src="../assets/js/supabase.js"></script>
+  <script src="../assets/js/data.js"></script>
+  <script src="../assets/js/app.js"></script>
+  <script src="../assets/js/menu.js"></script>
+
+</body>
+</html>
