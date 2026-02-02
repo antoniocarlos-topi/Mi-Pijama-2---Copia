@@ -3820,3 +3820,324 @@ body {
   position: relative;
   z-index: 1;
 }
+/* =========================
+   FIX DEFINITIVO: menu abre, mas links não aparecem
+   ========================= */
+
+/* o painel do menu precisa ser uma coluna com altura total */
+.mobile-menu {
+  display: flex !important;
+  flex-direction: column !important;
+  height: 100vh !important;
+  overflow: hidden !important;
+  background: #fff;
+}
+
+/* header sempre visível */
+.mobile-menu .mobile-menu-header {
+  flex: 0 0 auto !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  padding: 14px 16px !important;
+  background: #fff;
+  border-bottom: 1px solid rgba(0,0,0,.06);
+}
+
+/* ✅ AQUI é o principal: a área dos links precisa "crescer" e ter scroll */
+.mobile-menu .mobile-nav {
+  flex: 1 1 auto !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 10px !important;
+  padding: 14px 16px !important;
+  overflow: auto !important;
+
+  /* força a aparecer mesmo se algum CSS antigo estiver escondendo */
+  opacity: 1 !important;
+  visibility: visible !important;
+  height: auto !important;
+  max-height: none !important;
+}
+
+/* garante que os links fiquem visíveis (texto + área clicável) */
+.mobile-menu .mobile-nav a {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  padding: 12px 12px !important;
+  border-radius: 14px !important;
+  text-decoration: none !important;
+
+  color: #2e2a2b !important;                 /* texto visível */
+  background: rgba(0,0,0,.03) !important;     /* leve fundo pra enxergar */
+}
+
+/* deixa o "Carrinho" bonitinho dentro do menu */
+.mobile-menu .mobile-nav .nav-cart .cart-badge {
+  margin-left: 10px;
+}
+
+/* footer fica no final, sem cobrir o conteúdo */
+.mobile-menu .mobile-menu-footer {
+  flex: 0 0 auto !important;
+  padding: 14px 16px !important;
+  background: #fff;
+  border-top: 1px solid rgba(0,0,0,.06);
+}
+
+/* se seu JS usa .is-open, reforça visibilidade */
+.mobile-menu.is-open {
+  opacity: 1 !important;
+  visibility: visible !important;
+}
+/* =========================
+   MOBILE FIX: Carrinho + Barra inferior
+   ========================= */
+@media (max-width: 520px) {
+
+  /* ---------- CARRINHO (cards) ---------- */
+  /* garante que cada item vire um grid bem alinhado */
+  .cart-item,
+  .cart-row,
+  .cart-card {
+    width: 100%;
+  }
+
+  /* Se seu HTML usa um wrapper tipo #cart-items > .cart-item */
+  #cart-items .cart-item {
+    display: grid !important;
+    grid-template-columns: 76px 1fr auto !important; /* foto | infos | controles */
+    gap: 12px !important;
+    align-items: start !important;
+    padding: 14px !important;
+    border-radius: 18px !important;
+  }
+
+  /* imagem do produto */
+  #cart-items .cart-item img,
+  #cart-items .cart-item__img,
+  #cart-items .cart-item .thumb img {
+    width: 76px !important;
+    height: 76px !important;
+    border-radius: 16px !important;
+    object-fit: cover !important; /* não distorce */
+    display: block !important;
+  }
+
+  /* bloco de infos (nome + tamanho + preço) */
+  #cart-items .cart-item .cart-info,
+  #cart-items .cart-item__info,
+  #cart-items .cart-item .info {
+    min-width: 0 !important; /* permite quebrar texto */
+  }
+
+  /* nome do produto (evita ficar tudo junto/estourar) */
+  #cart-items .cart-item h3,
+  #cart-items .cart-item .cart-title,
+  #cart-items .cart-item__name {
+    margin: 0 0 6px !important;
+    font-size: 16px !important;
+    line-height: 1.2 !important;
+    font-weight: 600 !important;
+
+    /* evita quebrar o layout */
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+  }
+
+  /* tamanho/variante */
+  #cart-items .cart-item .cart-variant,
+  #cart-items .cart-item__variant,
+  #cart-items .cart-item small {
+    display: block !important;
+    margin: 0 0 8px !important;
+    opacity: .75 !important;
+    font-size: 13px !important;
+    line-height: 1.2 !important;
+  }
+
+  /* preço do item (apenas alinhamento) */
+  #cart-items .cart-item .cart-price,
+  #cart-items .cart-item__price,
+  #cart-items .cart-item p {
+    margin: 0 !important;
+  }
+
+  /* controles ( + / - / remover ) */
+  #cart-items .cart-item .cart-actions,
+  #cart-items .cart-item__actions,
+  #cart-items .cart-item .qty {
+    justify-self: end !important;
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 10px !important;
+    align-items: flex-end !important;
+  }
+
+  /* botões de quantidade ficam em linha, bem alinhados */
+  #cart-items .cart-item .qty-controls,
+  #cart-items .cart-item__qty,
+  #cart-items .cart-item .qty-row {
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 10px !important;
+  }
+
+  /* botão remover não estoura o card */
+  #cart-items .cart-item .remove,
+  #cart-items .cart-item__remove,
+  #cart-items .cart-item button {
+    max-width: 140px !important;
+  }
+
+
+  /* ---------- RESUMO (Subtotal/Total + botões) ---------- */
+  .cart-summary {
+    padding: 14px !important;
+    border-radius: 18px !important;
+  }
+
+  .cart-summary .actions {
+    display: grid !important;
+    grid-template-columns: 1fr !important;
+    gap: 10px !important;
+  }
+
+  .cart-summary .actions .btn,
+  .cart-summary .actions a {
+    width: 100% !important;
+    text-align: center !important;
+  }
+
+
+  /* ---------- BARRA INFERIOR (mobile-cta) ---------- */
+  .mobile-cta {
+    left: 10px !important;
+    right: 10px !important;
+    bottom: 10px !important;
+    width: auto !important;
+
+    display: grid !important;
+    grid-template-columns: 1fr 1fr 1fr 1fr !important;
+    gap: 10px !important;
+
+    padding: 10px !important;
+    border-radius: 18px !important;
+    box-sizing: border-box !important;
+  }
+
+  /* cada item ocupa sua coluna certinha */
+  .mobile-cta__item {
+    width: 100% !important;
+    min-width: 0 !important;
+    padding: 10px 8px !important;
+    border-radius: 16px !important;
+
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 8px !important;
+
+    box-sizing: border-box !important;
+  }
+
+  /* texto não estoura (Carrinho / Pijamas / Admin) */
+  .mobile-cta__text {
+    font-size: 12px !important;
+    line-height: 1 !important;
+    max-width: 70px !important;
+
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+  }
+
+  /* badge do carrinho mais bonito e alinhado */
+  .mobile-cta__badge {
+    position: absolute !important;
+    top: 6px !important;
+    right: 10px !important;
+    transform: none !important;
+    min-width: 18px !important;
+    height: 18px !important;
+    padding: 0 6px !important;
+
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+
+    border-radius: 999px !important;
+    font-size: 11px !important;
+    line-height: 1 !important;
+  }
+
+  /* garante que o item tenha contexto pro badge */
+  .mobile-cta__item {
+    position: relative !important;
+  }
+}
+/* =========================
+   MOBILE CTA - FIX GLOBAL
+   ========================= */
+@media (max-width: 520px) {
+  .mobile-cta {
+    left: 10px !important;
+    right: 10px !important;
+    bottom: 10px !important;
+    width: auto !important;
+
+    display: grid !important;
+    grid-template-columns: 1fr 1fr 1fr 1fr !important;
+    gap: 10px !important;
+
+    padding: 10px !important;
+    border-radius: 18px !important;
+    box-sizing: border-box !important;
+  }
+
+  .mobile-cta__item {
+    width: 100% !important;
+    min-width: 0 !important;
+    padding: 10px 8px !important;
+    border-radius: 16px !important;
+
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 8px !important;
+
+    box-sizing: border-box !important;
+    position: relative !important;
+  }
+
+  .mobile-cta__text {
+    font-size: 12px !important;
+    line-height: 1 !important;
+    max-width: 70px !important;
+
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+  }
+
+  .mobile-cta__badge {
+    position: absolute !important;
+    top: 6px !important;
+    right: 10px !important;
+    transform: none !important;
+
+    min-width: 18px !important;
+    height: 18px !important;
+    padding: 0 6px !important;
+
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+
+    border-radius: 999px !important;
+    font-size: 11px !important;
+    line-height: 1 !important;
+  }
+}
