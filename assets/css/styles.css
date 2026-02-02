@@ -3700,3 +3700,119 @@ body {
   border-radius: 14px;
   box-shadow: 0 14px 30px rgba(0,0,0,.18);
 }
+/* =========================
+   MENU TOGGLE (mobile)
+   3 pontinhos vertical, sem quadrado
+   ========================= */
+
+.menu-toggle {
+  width: 42px;
+  height: 42px;
+  border: 0 !important;
+  background: transparent !important;
+  padding: 0 !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  display: inline-flex;
+  flex-direction: column; /* um embaixo do outro */
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  outline: none;
+}
+
+/* remove qualquer estilo "quadrado" no foco */
+.menu-toggle:focus,
+.menu-toggle:focus-visible {
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+/* transforma as 3 barrinhas (spans) em bolinhas */
+.menu-toggle span {
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+  background: #2e2a2b; /* cor do site */
+  display: block;
+}
+
+/* se você tinha animação de "X", evita deformar as bolinhas */
+.menu-toggle.is-open span {
+  transform: none !important;
+  opacity: 1 !important;
+}
+
+/* =========================
+   FIX: Menu mobile abre, mas não mostra as opções
+   ========================= */
+
+/* garante que o drawer exista e fique visível */
+.mobile-menu {
+  background: #fff;
+}
+
+/* quando abre, precisa deixar o conteúdo renderizar */
+.mobile-menu.is-open {
+  visibility: visible;
+  opacity: 1;
+}
+
+/* garante que o conteúdo interno não fique "colapsado" */
+.mobile-menu-header,
+.mobile-menu-footer,
+.mobile-nav {
+  display: block;
+  visibility: visible;
+  opacity: 1;
+}
+
+/* garante que a lista de links apareça */
+.mobile-nav {
+  padding: 14px 16px;
+}
+
+/* garante que cada link apareça como item clicável */
+.mobile-nav a {
+  display: block;
+  padding: 12px 10px;
+  margin: 2px 0;
+  color: #2e2a2b;          /* texto visível */
+  text-decoration: none;
+  font-size: 1rem;         /* evita font-size 0 */
+  line-height: 1.2;
+  border-radius: 10px;
+}
+
+/* feedback ao tocar */
+.mobile-nav a:active {
+  transform: scale(0.99);
+}
+
+/* se algum CSS antigo tiver zerando altura/overflow */
+.mobile-menu.is-open .mobile-nav {
+  height: auto !important;
+  max-height: none !important;
+  overflow: visible !important;
+}
+
+/* carrinho dentro do menu também */
+.mobile-nav .nav-cart {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+/* badge visível */
+.mobile-nav .cart-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 22px;
+  height: 22px;
+  padding: 0 7px;
+  border-radius: 999px;
+  font-size: .85rem;
+}
