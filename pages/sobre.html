@@ -1,11 +1,17 @@
-<!DOCTYPE html>
+<<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
   <title>Sobre - MI Pijamas</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="stylesheet" href="../assets/css/styles.css">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Conheça a MI Pijamas: pijamas femininos com conforto premium, estilo e qualidade." />
+
+  <link rel="stylesheet" href="../assets/css/styles.css" />
+
+  <!-- ✅ FAVICON -->
+  <link rel="icon" href="../assets/image/mi-pijama-logo.jpg" type="image/jpeg" />
 </head>
+
 <body>
 
 <a class="whats-float" href="https://wa.me/558699700402" target="_blank" rel="noopener noreferrer" aria-label="Falar no WhatsApp">
@@ -13,13 +19,19 @@
   <span class="whats-text">WhatsApp</span>
 </a>
 
- <header class="site-header">
+<header class="site-header">
   <div class="container header-row">
-    <a class="brand" href="../index.html" aria-label="MI Pijamas - Início">
-      <span class="brand-dot"></span>
-      <span class="brand-name">MI Pijamas</span>
+    <!-- ✅ LOGO NO TOPO -->
+    <a class="brand" href="../index.html" aria-label="MI Pijamas - Início" style="display:flex; align-items:center; gap:10px;">
+      <img
+        src="../assets/image/mi-pijama-logo.jpg"
+        alt="MI Pijamas"
+        style="height:34px; width:auto; border-radius:10px;"
+      />
+      <span class="brand-name" style="font-weight:900;">MI Pijamas</span>
     </a>
 
+    <!-- ✅ HAMBURGUER (3 tracinhos) - já é isso aqui -->
     <button
       class="menu-toggle"
       type="button"
@@ -34,29 +46,25 @@
       <ul>
         <li><a href="../index.html">Início</a></li>
         <li><a href="produtos.html">Pijamas</a></li>
-        <li><a href="sobre.html">Sobre</a></li>
+        <li><a href="sobre.html" aria-current="page">Sobre</a></li>
         <li><a href="contato.html">Contato</a></li>
-    <li>
-  <a class="nav-cart" href="carrinho.html">
-    Carrinho <span class="cart-badge" data-cart-badge aria-label="Itens no carrinho">0</span>
-  </a>
-</li>
-
+        <li>
+          <a class="nav-cart" href="carrinho.html">
+            Carrinho <span class="cart-badge" data-cart-badge aria-label="Itens no carrinho">0</span>
+          </a>
+        </li>
       </ul>
     </nav>
   </div>
 
-  <!-- Overlay -->
+  <!-- ✅ Overlay (SÓ 1 VEZ) -->
   <div class="menu-overlay" data-menu-close></div>
 
-  <!-- Menu lateral mobile -->
+  <!-- ✅ Menu lateral mobile (SÓ 1 VEZ) -->
   <aside class="mobile-menu" id="mobile-menu" aria-hidden="true">
     <div class="mobile-menu-header">
       <span class="mobile-menu-title">Menu</span>
-
-      <button class="menu-close" type="button" aria-label="Fechar menu" data-menu-close>
-        ✕
-      </button>
+      <button class="menu-close" type="button" aria-label="Fechar menu" data-menu-close>✕</button>
     </div>
 
     <nav class="mobile-nav" aria-label="Menu mobile">
@@ -64,43 +72,59 @@
       <a href="produtos.html">Pijamas</a>
       <a href="sobre.html">Sobre</a>
       <a href="contato.html">Contato</a>
+      <a href="admin.html">Admin</a>
       <a class="nav-cart" href="carrinho.html">
-  Carrinho <span class="cart-badge" data-cart-badge>0</span>
-</a>
+        Carrinho <span class="cart-badge" data-cart-badge>0</span>
+      </a>
     </nav>
 
     <div class="mobile-menu-footer">
       <a class="btn primary" href="produtos.html">Ver Pijamas</a>
-      <a class="btn" href="https://wa.me/558699700402" target="_blank">WhatsApp</a>
+      <a class="btn" href="https://wa.me/558699700402" target="_blank" rel="noopener noreferrer">WhatsApp</a>
     </div>
   </aside>
 </header>
 
+<main>
+  <div class="container">
+    <h2>Sobre a MI Pijamas</h2>
 
-  <main>
-    <div class="container">
-      <h2>Sobre a MI Pijamas</h2>
-      <p>A MI Pijamas é dedicada a oferecer pijamas de alta qualidade, feitos com materiais confortáveis e duráveis. Nossos produtos são projetados para proporcionar o máximo de conforto durante as noites de descanso.</p>
-      <p>Com foco no público feminino, nossas peças combinam estilo e praticidade, garantindo que você se sinta elegante e relaxada em qualquer ocasião.</p>
-      <p>Utilizamos tecidos de primeira linha e padrões modernos para atender às necessidades das mulheres que valorizam o bem-estar e a moda.</p>
-      <section>
-        <h3>Nossa missão</h3>
-        <p>Proporcionar conforto e qualidade através de pijamas que unem elegância e praticidade, tornando cada noite uma experiência especial para nossas clientes.</p>
-      </section>
-      <a href="produtos.html" class="btn">Ver Pijamas</a>
-    </div>
-  </main>
+    <p>
+      A MI Pijamas é dedicada a oferecer pijamas de alta qualidade, feitos com materiais confortáveis e duráveis.
+      Nossos produtos são projetados para proporcionar o máximo de conforto durante as noites de descanso.
+    </p>
 
-  <footer>
-    <div class="container">
-      <p>&copy; <span id="year"></span> MI Pijamas. Todos os direitos reservados.</p>
-      <ul>
-        <li><a href="contato.html">Contato</a></li>
-        <li><a href="sobre.html">Sobre Nós</a></li>
-      </ul>
-    </div>
-  </footer>
-  <nav class="mobile-cta" aria-label="Ações rápidas">
+    <p>
+      Com foco no público feminino, nossas peças combinam estilo e praticidade, garantindo que você se sinta elegante e relaxada em qualquer ocasião.
+    </p>
+
+    <p>
+      Utilizamos tecidos de primeira linha e padrões modernos para atender às necessidades das mulheres que valorizam bem-estar e moda.
+    </p>
+
+    <section class="section" style="margin-top:16px;">
+      <h3 style="text-align:left;">Nossa missão</h3>
+      <p>
+        Proporcionar conforto e qualidade através de pijamas que unem elegância e praticidade,
+        tornando cada noite uma experiência especial para nossas clientes.
+      </p>
+
+      <div class="actions" style="margin-top:14px;">
+        <a href="produtos.html" class="btn primary">Ver Pijamas</a>
+        <a href="https://wa.me/558699700402" class="btn" target="_blank" rel="noopener noreferrer">Falar no WhatsApp</a>
+      </div>
+    </section>
+  </div>
+</main>
+
+<footer>
+  <div class="container">
+    <p>&copy; <span id="year"></span> MI Pijamas. Todos os direitos reservados.</p>
+  </div>
+</footer>
+
+<!-- ✅ CTA FIXA MOBILE (com Admin) -->
+<nav class="mobile-cta" aria-label="Ações rápidas">
   <a class="mobile-cta__item" href="produtos.html">
     <span class="mobile-cta__icon">🛍️</span>
     <span class="mobile-cta__text">Pijamas</span>
@@ -116,12 +140,16 @@
     <span class="mobile-cta__text">Carrinho</span>
     <span class="mobile-cta__badge" data-cart-badge>0</span>
   </a>
+
+  <a class="mobile-cta__item" href="admin.html" aria-label="Abrir Admin">
+    <span class="mobile-cta__icon">⚙️</span>
+    <span class="mobile-cta__text">Admin</span>
+  </a>
 </nav>
 
-  <script src="../assets/js/supabase.js"></script>
-  <script src="../assets/js/data.js"></script>
-  <script src="../assets/js/app.js"></script>
-  <script src="../assets/js/menu.js"></script>
+<script src="../assets/js/supabase.js"></script>
+<script src="../assets/js/data.js"></script>
+<script src="../assets/js/app.js"></script>
 
 </body>
 </html>

@@ -1,10 +1,11 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
   <title>Finalizar Compra - MI Pijamas</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="stylesheet" href="../assets/css/styles.css">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="../assets/css/styles.css" />
+  <link rel="icon" href="../assets/image/mi-pijama-logo.jpg" type="image/jpeg" />
 </head>
 
 <body>
@@ -17,7 +18,7 @@
 <header class="site-header">
   <div class="container header-row">
     <a class="brand" href="../index.html" aria-label="MI Pijamas - Início">
-      <span class="brand-dot"></span>
+      <img class="brand-logo" src="../assets/image/mi-pijama-logo.jpg" alt="MI Pijamas" />
       <span class="brand-name">MI Pijamas</span>
     </a>
 
@@ -37,6 +38,7 @@
         <li><a href="produtos.html">Pijamas</a></li>
         <li><a href="sobre.html">Sobre</a></li>
         <li><a href="contato.html">Contato</a></li>
+        <li><a href="admin.html">Admin</a></li>
         <li>
           <a class="nav-cart" href="carrinho.html">
             Carrinho <span class="cart-badge" data-cart-badge aria-label="Itens no carrinho">0</span>
@@ -46,12 +48,13 @@
     </nav>
   </div>
 
+  <!-- overlay único -->
   <div class="menu-overlay" data-menu-close></div>
 
+  <!-- drawer único -->
   <aside class="mobile-menu" id="mobile-menu" aria-hidden="true">
     <div class="mobile-menu-header">
       <span class="mobile-menu-title">Menu</span>
-
       <button class="menu-close" type="button" aria-label="Fechar menu" data-menu-close>✕</button>
     </div>
 
@@ -60,6 +63,7 @@
       <a href="produtos.html">Pijamas</a>
       <a href="sobre.html">Sobre</a>
       <a href="contato.html">Contato</a>
+      <a href="admin.html">Admin</a>
       <a class="nav-cart" href="carrinho.html">
         Carrinho <span class="cart-badge" data-cart-badge>0</span>
       </a>
@@ -85,12 +89,12 @@
         <form id="checkout-form" style="margin-top:16px;">
           <div class="form-group">
             <label for="nome">Nome completo *</label>
-            <input type="text" id="nome" name="nome" required placeholder="Ex: Maria Silva">
+            <input type="text" id="nome" name="nome" required placeholder="Ex: Maria Silva" />
           </div>
 
           <div class="form-group">
             <label for="telefone">Telefone/WhatsApp *</label>
-            <input type="tel" id="telefone" name="telefone" required placeholder="(86) 99999-9999">
+            <input type="tel" id="telefone" name="telefone" required placeholder="(86) 99999-9999" />
           </div>
 
           <div class="form-group">
@@ -114,7 +118,7 @@
           <p>Total: <span id="total">R$ 0,00</span></p>
         </div>
 
-        <button id="whatsapp-btn" class="button primary" type="button" style="width:100%; margin-top:10px;">
+        <button id="whatsapp-btn" class="btn primary" type="button" style="width:100%; margin-top:10px;">
           Finalizar no WhatsApp
         </button>
 
@@ -129,14 +133,10 @@
 <footer>
   <div class="container">
     <p>&copy; <span id="year"></span> MI Pijamas. Todos os direitos reservados.</p>
-    <ul>
-      <li><a href="contato.html">Contato</a></li>
-      <li><a href="sobre.html">Sobre Nós</a></li>
-    </ul>
   </div>
 </footer>
 
-<!-- CTA mobile (corrigido: sem "pages/") -->
+<!-- mobile-cta único -->
 <nav class="mobile-cta" aria-label="Ações rápidas">
   <a class="mobile-cta__item" href="produtos.html">
     <span class="mobile-cta__icon">🛍️</span>
@@ -152,6 +152,11 @@
     <span class="mobile-cta__icon">🧺</span>
     <span class="mobile-cta__text">Carrinho</span>
     <span class="mobile-cta__badge" data-cart-badge>0</span>
+  </a>
+
+  <a class="mobile-cta__item" href="admin.html">
+    <span class="mobile-cta__icon">⚙️</span>
+    <span class="mobile-cta__text">Admin</span>
   </a>
 </nav>
 

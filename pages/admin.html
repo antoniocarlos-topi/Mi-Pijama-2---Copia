@@ -5,6 +5,7 @@
   <title>Admin - MI Pijamas</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <link rel="stylesheet" href="../assets/css/styles.css" />
+  <link rel="icon" href="../assets/image/mi-pijama-logo.jpg" type="image/jpeg">
 </head>
 
 <body>
@@ -12,17 +13,11 @@
 <header class="site-header">
   <div class="container header-row">
     <a class="brand" href="../index.html" aria-label="MI Pijamas - Início">
-      <span class="brand-dot"></span>
+      <img class="brand-logo" src="../assets/image/mi-pijama-logo.jpg" alt="MI Pijamas">
       <span class="brand-name">MI Pijamas</span>
     </a>
 
-    <button
-      class="menu-toggle"
-      type="button"
-      aria-label="Abrir menu"
-      aria-expanded="false"
-      aria-controls="mobile-menu"
-    >
+    <button class="menu-toggle" type="button" aria-label="Abrir menu" aria-expanded="false" aria-controls="mobile-menu">
       <span></span><span></span><span></span>
     </button>
 
@@ -40,17 +35,12 @@
     </nav>
   </div>
 
-  <!-- Overlay -->
   <div class="menu-overlay" data-menu-close></div>
 
-  <!-- Drawer -->
   <aside class="mobile-menu" id="mobile-menu" aria-hidden="true">
     <div class="mobile-menu-header">
       <span class="mobile-menu-title">Menu</span>
-
-      <button class="menu-close" type="button" aria-label="Fechar menu" data-menu-close>
-        ✕
-      </button>
+      <button class="menu-close" type="button" aria-label="Fechar menu" data-menu-close>✕</button>
     </div>
 
     <nav class="mobile-nav" aria-label="Menu mobile">
@@ -74,7 +64,6 @@
     <h2 style="margin-bottom: 10px;">Painel Admin</h2>
     <p style="margin-bottom: 18px;">Cadastre/edite pijamas direto no Supabase.</p>
 
-    <!-- LOGIN -->
     <section class="mini-card" id="admin-login" style="padding:18px; max-width:520px;">
       <h3 style="margin-bottom:10px;">Acesso</h3>
 
@@ -90,9 +79,7 @@
       <p id="admin-login-msg" style="margin-top:10px;"></p>
     </section>
 
-    <!-- APP -->
     <section id="admin-app" style="display:none;">
-      <!-- FORM -->
       <section class="mini-card" style="padding:18px; margin-top:18px;">
         <h3 id="form-title" style="margin-bottom:10px;">Novo pijama</h3>
 
@@ -134,7 +121,7 @@
 
           <div class="form-group">
             <img id="p-image-preview" alt="Prévia da imagem"
-                 style="display:none; width:100%; max-width:420px; border-radius:16px; border:1px solid rgba(46,42,43,.12);" />
+              style="display:none; width:100%; max-width:420px; border-radius:16px; border:1px solid rgba(46,42,43,.12);" />
           </div>
 
           <div class="form-group">
@@ -148,10 +135,11 @@
               Ativo (aparece no site)
             </label>
 
-        <label style="display:flex; gap:10px; align-items:center;">
-  <input type="checkbox" id="p-featured" />
-  Selecionado (aparece na Home)
-</label>
+            <!-- ✅ id correto pro admin.js -->
+            <label style="display:flex; gap:10px; align-items:center;">
+              <input type="checkbox" id="p-featured" />
+              Selecionado (aparece na Home)
+            </label>
 
             <label style="display:flex; gap:10px; align-items:center;">
               <input type="checkbox" id="p-promo" />
@@ -174,7 +162,6 @@
         </form>
       </section>
 
-      <!-- LISTA -->
       <section class="section" style="margin-top:18px;">
         <h2 style="text-align:left; margin-bottom:12px;">Pijamas cadastrados</h2>
         <div id="admin-list" class="highlights"></div>
@@ -183,7 +170,29 @@
   </div>
 </main>
 
-<!-- ✅ ordem correta -->
+<nav class="mobile-cta" aria-label="Ações rápidas">
+  <a class="mobile-cta__item" href="produtos.html">
+    <span class="mobile-cta__icon">🛍️</span>
+    <span class="mobile-cta__text">Pijamas</span>
+  </a>
+
+  <a class="mobile-cta__item mobile-cta__primary" href="https://wa.me/558699700402" target="_blank" rel="noopener noreferrer">
+    <span class="mobile-cta__icon">💬</span>
+    <span class="mobile-cta__text">WhatsApp</span>
+  </a>
+
+  <a class="mobile-cta__item" href="carrinho.html">
+    <span class="mobile-cta__icon">🧺</span>
+    <span class="mobile-cta__text">Carrinho</span>
+    <span class="mobile-cta__badge" data-cart-badge>0</span>
+  </a>
+
+  <a class="mobile-cta__item" href="admin.html">
+    <span class="mobile-cta__icon">⚙️</span>
+    <span class="mobile-cta__text">Admin</span>
+  </a>
+</nav>
+
 <script src="../assets/js/supabase.js"></script>
 <script src="../assets/js/data.js"></script>
 <script src="../assets/js/app.js"></script>

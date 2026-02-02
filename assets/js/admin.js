@@ -24,6 +24,17 @@
     el.style.color = ok ? "rgba(31,27,29,.75)" : "#B93A76";
   }
 
+  function prettyError(err) {
+    if (!err) return "Erro desconhecido.";
+    if (typeof err === "string") return err;
+    if (err?.message) return err.message;
+    try {
+      return JSON.stringify(err);
+    } catch {
+      return "Erro desconhecido.";
+    }
+  }
+
   async function ensureSupabaseJs() {
     if (window.supabase?.createClient) return;
     await new Promise((resolve, reject) => {
@@ -35,12 +46,22 @@
     });
   }
 
+  // ✅ singleton do client (evita múltiplos clients)
   async function getClient() {
     await ensureSupabaseJs();
+
     if (!window.__MI_SUPABASE__?.url || !window.__MI_SUPABASE__?.anonKey) {
       throw new Error("Config do Supabase não encontrada (window.__MI_SUPABASE__).");
     }
-    return window.supabase.createClient(window.__MI_SUPABASE__.url, window.__MI_SUPABASE__.anonKey);
+
+    if (window.__MI_SB_CLIENT__) return window.__MI_SB_CLIENT__;
+
+    window.__MI_SB_CLIENT__ = window.supabase.createClient(
+      window.__MI_SUPABASE__.url,
+      window.__MI_SUPABASE__.anonKey
+    );
+
+    return window.__MI_SB_CLIENT__;
   }
 
   function setAuthed(v) {
@@ -106,6 +127,13 @@
     return `R$ ${v}`;
   }
 
+  function resolveImageSrc(imageValue, basePath) {
+    const v = String(imageValue || "").trim();
+    if (!v) return "";
+    if (v.startsWith("http://") || v.startsWith("https://")) return v;
+    return basePath + v;
+  }
+
   function getPublicUrl(client, path) {
     const { data } = client.storage.from(BUCKET).getPublicUrl(path);
     return data?.publicUrl || "";
@@ -139,14 +167,42 @@
     return getPublicUrl(client, path);
   }
 
+  // ✅ tenta extrair o caminho do storage a partir da URL pública
+  function extractBucketPathFromPublicUrl(url) {
+    try {
+      const u = new URL(url);
+      // .../storage/v1/object/public/<bucket>/<path>
+      const idx = u.pathname.indexOf(`/storage/v1/object/public/${BUCKET}/`);
+      if (idx === -1) return null;
+      return decodeURIComponent(u.pathname.slice(idx + `/storage/v1/object/public/${BUCKET}/`.length));
+    } catch {
+      return null;
+    }
+  }
+
+  async function deleteImageIfFromBucket(client, imageUrlOrName) {
+    const v = String(imageUrlOrName || "").trim();
+    if (!v) return;
+
+    // Se for URL pública do bucket
+    if (v.startsWith("http://") || v.startsWith("https://")) {
+      const path = extractBucketPathFromPublicUrl(v);
+      if (!path) return;
+      await client.storage.from(BUCKET).remove([path]);
+      return;
+    }
+
+    // Se alguém salvou “products/arquivo.jpg” como texto no banco
+    if (v.startsWith("products/")) {
+      await client.storage.from(BUCKET).remove([v]);
+    }
+  }
+
   function productCardHTML(p) {
     const promo = p.promo && p.promo_price ? formatBRL(p.promo_price) : null;
     const base = formatBRL(p.price);
 
-    const imgSrc =
-      window.dataLayer && typeof window.dataLayer.resolveImageSrc === "function"
-        ? window.dataLayer.resolveImageSrc(p.image || "", "../assets/images/")
-        : (p.image || "");
+    const imgSrc = resolveImageSrc(p.image || "", "../assets/images/");
 
     return `
       <article class="highlight" style="text-align:left; position:relative;">
@@ -265,7 +321,7 @@
 
     const preview = qs("#p-image-preview");
     if (preview && p.image) {
-      preview.src = p.image;
+      preview.src = resolveImageSrc(p.image, "../assets/images/");
       preview.style.display = "block";
     }
   }
@@ -294,7 +350,7 @@
     const client = await getClient();
     const formMsg = qs("#form-msg");
 
-    const { data, error } = await client.from(PRODUCTS_TABLE).select("id, name").eq("id", id).single();
+    const { data, error } = await client.from(PRODUCTS_TABLE).select("id, name, image").eq("id", id).single();
     if (error) {
       console.error(error);
       msg(formMsg, "Erro ao localizar o produto para apagar.", false);
@@ -307,6 +363,14 @@
 
     try {
       msg(formMsg, "Apagando...", true);
+
+      // ✅ apaga imagem do storage (se for do bucket)
+      try {
+        await deleteImageIfFromBucket(client, data.image);
+      } catch (e) {
+        console.warn("Não consegui apagar a imagem do storage (ok continuar):", e);
+      }
+
       const del = await client.from(PRODUCTS_TABLE).delete().eq("id", id);
       if (del.error) throw del.error;
 
@@ -316,7 +380,7 @@
       await listProducts();
     } catch (err) {
       console.error(err);
-      msg(formMsg, "Erro ao apagar. Veja o console.", false);
+      msg(formMsg, "Erro ao apagar: " + prettyError(err), false);
     }
   }
 
@@ -339,8 +403,9 @@
 
     if (!name) return msg(formMsg, "Informe o nome do pijama.", false);
     if (price === null) return msg(formMsg, "Informe um preço válido (ex: 89.90).", false);
-    if (promo && (promo_price === null || promo_price <= 0))
+    if (promo && (promo_price === null || promo_price <= 0)) {
       return msg(formMsg, "Promoção marcada: informe preço promocional válido.", false);
+    }
 
     try {
       msg(formMsg, "Salvando... (enviando imagem se houver)", true);
@@ -375,26 +440,44 @@
       await listProducts();
     } catch (err) {
       console.error(err);
-      msg(formMsg, "Erro ao salvar. Veja o console.", false);
+      msg(formMsg, "Erro ao salvar: " + prettyError(err), false);
     }
   }
 
   function initPreview() {
     const file = qs("#p-image-file");
     const preview = qs("#p-image-preview");
-    if (!file || !preview) return;
+    const urlInput = qs("#p-image");
+    if (!preview) return;
 
-    file.addEventListener("change", () => {
-      const f = file.files?.[0];
-      if (!f) {
-        preview.src = "";
-        preview.style.display = "none";
-        return;
-      }
-      const url = URL.createObjectURL(f);
-      preview.src = url;
-      preview.style.display = "block";
-    });
+    // preview do FILE
+    if (file) {
+      file.addEventListener("change", () => {
+        const f = file.files?.[0];
+        if (!f) return;
+        const url = URL.createObjectURL(f);
+        preview.src = url;
+        preview.style.display = "block";
+      });
+    }
+
+    // preview do campo URL / nome do arquivo
+    if (urlInput) {
+      urlInput.addEventListener("input", () => {
+        const v = (urlInput.value || "").trim();
+        if (!v) {
+          // não esconde se tiver arquivo escolhido
+          const hasFile = !!file?.files?.length;
+          if (!hasFile) {
+            preview.src = "";
+            preview.style.display = "none";
+          }
+          return;
+        }
+        preview.src = resolveImageSrc(v, "../assets/images/");
+        preview.style.display = "block";
+      });
+    }
   }
 
   function boot() {

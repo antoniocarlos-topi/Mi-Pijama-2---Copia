@@ -1,192 +1,147 @@
 // assets/js/checkout.js
 (function () {
-  const WHATSAPP = "558699700402";
   const CART_KEY = "miPijamas_cart";
 
-  function qs(sel, ctx = document) {
-    return ctx.querySelector(sel);
-  }
-
   function formatBRL(value) {
-    const n = Number(value) || 0;
-    return "R$ " + n.toFixed(2).replace(".", ",");
+    return "R$ " + Number(value || 0).toFixed(2).replace(".", ",");
   }
 
   function getCart() {
     try {
       return JSON.parse(localStorage.getItem(CART_KEY) || "[]");
-    } catch (e) {
+    } catch {
       return [];
     }
   }
 
-  function setCart(cart) {
-    localStorage.setItem(CART_KEY, JSON.stringify(cart));
-    window.dispatchEvent(new Event("storage"));
+  async function ensureDataReady() {
+    if (window.dataLayer && typeof window.dataLayer.initData === "function") {
+      try { await window.dataLayer.initData(); } catch {}
+    }
   }
 
-  function calcTotals(items) {
-    const subtotal = items.reduce((sum, it) => {
-      const q = Number(it.quantidade) || 0;
-      const p = Number(it.preco) || 0;
-      return sum + q * p;
-    }, 0);
-
-    // por enquanto total = subtotal (frete depois)
-    const total = subtotal;
-    return { subtotal, total };
+  function resolveImgSrc(productImage) {
+    // checkout está em /pages => basePath volta 1 nível
+    const basePath = "../assets/images/";
+    if (window.dataLayer && typeof window.dataLayer.resolveImageSrc === "function") {
+      return window.dataLayer.resolveImageSrc(productImage || "", basePath);
+    }
+    const raw = String(productImage || "").trim();
+    if (!raw) return "";
+    if (raw.startsWith("http")) return raw;
+    return basePath + raw;
   }
 
-  function renderOrderSummary(items) {
-    const wrap = qs("#order-items");
-    const subtotalEl = qs("#subtotal");
-    const totalEl = qs("#total");
+  function renderSummary() {
+    const itemsBox = document.getElementById("order-items");
+    const subtotalEl = document.getElementById("subtotal");
+    const totalEl = document.getElementById("total");
 
-    if (!wrap || !subtotalEl || !totalEl) return;
+    if (!itemsBox || !subtotalEl || !totalEl) return;
 
-    wrap.innerHTML = "";
-
-    if (!items.length) {
-      wrap.innerHTML = "<p>Seu carrinho está vazio.</p>";
+    const cart = getCart();
+    if (!cart.length) {
+      itemsBox.innerHTML = `<p style="opacity:.8;">Seu carrinho está vazio.</p>`;
       subtotalEl.textContent = formatBRL(0);
       totalEl.textContent = formatBRL(0);
       return;
     }
 
-    items.forEach((it) => {
-      const line = document.createElement("div");
-      line.className = "order-item";
-      const name = it.nome || "Pijama";
-      const size = it.size ? ` • Tam: ${it.size}` : "";
-      const color = it.color ? ` • Cor: ${it.color}` : "";
-      const q = Number(it.quantidade) || 1;
+    let subtotal = 0;
 
-      line.innerHTML = `
-        <p style="margin:0;">
-          <strong>${name}</strong>
-          <span style="opacity:.85;">${size}${color}</span>
-          <br/>
-          <span style="opacity:.85;">Qtd: ${q} • ${formatBRL(it.preco)} cada</span>
-        </p>
+    itemsBox.innerHTML = cart.map((item) => {
+      const price = Number(item.preco || 0);
+      const qty = Number(item.quantidade || 1);
+      subtotal += price * qty;
+
+      const img = resolveImgSrc(item.imagem);
+
+      return `
+        <div class="cart-row" style="display:flex; gap:12px; align-items:center; padding:10px 0; border-bottom:1px solid rgba(0,0,0,.06);">
+          <div style="width:56px; height:56px; border-radius:14px; overflow:hidden; flex:0 0 auto; border:1px solid rgba(0,0,0,.08); background:#f4f4f4;">
+            <img src="${img}" alt="${(item.nome || "Produto").replace(/"/g, "")}"
+                 style="width:100%; height:100%; object-fit:cover; display:block;" loading="lazy" decoding="async">
+          </div>
+
+          <div style="flex:1;">
+            <div style="font-weight:800;">${item.nome || "Produto"}</div>
+            <div style="opacity:.8; font-size:.92rem;">Tam: ${item.tamanho || "-"}</div>
+            <div style="margin-top:2px; font-weight:900;">${formatBRL(price)}</div>
+          </div>
+
+          <div style="font-weight:800;">x${qty}</div>
+        </div>
       `;
-      wrap.appendChild(line);
-    });
+    }).join("");
 
-    const { subtotal, total } = calcTotals(items);
     subtotalEl.textContent = formatBRL(subtotal);
-    totalEl.textContent = formatBRL(total);
+    totalEl.textContent = formatBRL(subtotal);
   }
 
-  function buildWhatsAppMessage(orderId, payload) {
-    const { nome, telefone, endereco, itens, subtotal, total } = payload;
+  function buildWhatsAppMessage({ nome, telefone, endereco }) {
+    const cart = getCart();
 
-    const lines = itens.map((it) => {
-      const name = it.nome || "Pijama";
-      const size = it.size ? ` | Tam: ${it.size}` : "";
-      const color = it.color ? ` | Cor: ${it.color}` : "";
-      const q = Number(it.quantidade) || 1;
-      const unit = formatBRL(it.preco);
-      return `• ${name}${size}${color} | Qtd: ${q} | ${unit}`;
+    let msg = `Olá! Quero finalizar meu pedido na MI Pijamas 🛍️\n\n`;
+    msg += `👤 Nome: ${nome}\n`;
+    msg += `📞 WhatsApp: ${telefone}\n`;
+    if (endereco) msg += `📍 Endereço: ${endereco}\n`;
+    msg += `\n🧾 Itens do pedido:\n`;
+
+    let total = 0;
+
+    cart.forEach((item, idx) => {
+      const price = Number(item.preco || 0);
+      const qty = Number(item.quantidade || 1);
+      const line = price * qty;
+      total += line;
+
+      msg += `${idx + 1}) ${item.nome || "Produto"} `;
+      if (item.tamanho) msg += `(Tam: ${item.tamanho}) `;
+      msg += `x${qty} - ${formatBRL(price)}\n`;
     });
 
-    const msg =
-      `Olá! Quero finalizar meu pedido 😊\n\n` +
-      `Pedido: #${orderId}\n\n` +
-      `Cliente:\n` +
-      `• Nome: ${nome}\n` +
-      `• WhatsApp: ${telefone}\n` +
-      (endereco ? `• Endereço: ${endereco}\n\n` : "\n") +
-      `Itens:\n${lines.join("\n")}\n\n` +
-      `Subtotal: ${formatBRL(subtotal)}\n` +
-      `Total: ${formatBRL(total)}\n\n` +
-      `Pode confirmar disponibilidade e forma de entrega?`;
+    msg += `\n💰 Total: ${formatBRL(total)}\n`;
+    msg += `\nPode confirmar disponibilidade e entrega, por favor? 😊`;
 
-    return `https://wa.me/${WHATSAPP}?text=${encodeURIComponent(msg)}`;
+    return msg;
   }
 
-  async function ensureDataReady() {
-    if (window.dataLayer && typeof window.dataLayer.initData === "function") {
-      try {
-        await window.dataLayer.initData();
-      } catch (e) {
-        // ok
+  function initFinalize() {
+    const btn = document.getElementById("whatsapp-btn");
+    const form = document.getElementById("checkout-form");
+    if (!btn || !form) return;
+
+    btn.addEventListener("click", () => {
+      const nome = (document.getElementById("nome")?.value || "").trim();
+      const telefone = (document.getElementById("telefone")?.value || "").trim();
+      const endereco = (document.getElementById("endereco")?.value || "").trim();
+
+      if (!nome || !telefone) {
+        alert("Preencha nome e telefone para finalizar.");
+        return;
       }
-    }
-  }
 
-  async function createOrderInSupabase(payload) {
-    if (!window.dataLayer || typeof window.dataLayer.createOrder !== "function") {
-      throw new Error("createOrder não existe no dataLayer");
-    }
-    const created = await window.dataLayer.createOrder(payload);
-    return created;
-  }
+      const cart = getCart();
+      if (!cart.length) {
+        alert("Seu carrinho está vazio.");
+        return;
+      }
 
-  async function onFinalize() {
-    const nome = (qs("#nome")?.value || "").trim();
-    const telefone = (qs("#telefone")?.value || "").trim();
-    const endereco = (qs("#endereco")?.value || "").trim();
+      const message = buildWhatsAppMessage({ nome, telefone, endereco });
+      const url = `https://wa.me/558699700402?text=${encodeURIComponent(message)}`;
 
-    if (!nome) return alert("Preencha seu nome 🙂");
-    if (!telefone) return alert("Preencha seu WhatsApp 🙂");
-
-    const itens = getCart();
-    if (!itens.length) return alert("Seu carrinho está vazio 🙂");
-
-    const { subtotal, total } = calcTotals(itens);
-
-    const payload = {
-      nome,
-      telefone,
-      endereco,
-      itens,
-      subtotal,
-      total,
-      status: "novo",
-      created_at: new Date().toISOString(),
-    };
-
-    // botão loading
-    const btn = qs("#whatsapp-btn");
-    if (btn) {
-      btn.disabled = true;
-      btn.textContent = "Gerando pedido...";
-    }
-
-    try {
-      await ensureDataReady();
-
-      // ✅ salva no Supabase
-      const created = await createOrderInSupabase(payload);
-
-      // id do pedido (padrão: created.id)
-      const orderId = created?.id || "SEM-ID";
-
-      // abre WhatsApp com mensagem
-      const url = buildWhatsAppMessage(orderId, payload);
+      // NÃO salva no Supabase (evita RLS), apenas abre WhatsApp
       window.open(url, "_blank", "noopener,noreferrer");
 
-      // ✅ limpa carrinho
-      setCart([]);
-
-      // feedback
-      window.location.href = "obrigado.html";
-    } catch (e) {
-      console.error(e);
-      alert("Não consegui salvar o pedido. Verifique as permissões (RLS) e tente novamente.");
-    } finally {
-      if (btn) {
-        btn.disabled = false;
-        btn.textContent = "Finalizar no WhatsApp";
-      }
-    }
+      // opcional: limpar carrinho e mandar para obrigado
+      // localStorage.removeItem(CART_KEY);
+      // window.location.href = "obrigado.html";
+    });
   }
 
-  document.addEventListener("DOMContentLoaded", function () {
-    const btn = qs("#whatsapp-btn");
-    const items = getCart();
-    renderOrderSummary(items);
-
-    if (btn) btn.addEventListener("click", onFinalize);
+  document.addEventListener("DOMContentLoaded", async () => {
+    await ensureDataReady();
+    renderSummary();
+    initFinalize();
   });
 })();

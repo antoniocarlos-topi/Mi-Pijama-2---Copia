@@ -1,318 +1,327 @@
+// assets/js/cart.js
 (function () {
   const CART_KEY = "miPijamas_cart";
 
   function qs(sel, ctx = document) {
     return ctx.querySelector(sel);
   }
-  function qsa(sel, ctx = document) {
-    return Array.from(ctx.querySelectorAll(sel));
-  }
+
   function formatBRL(value) {
-    const n = Number(value) || 0;
-    return "R$ " + n.toFixed(2).replace(".", ",");
+    return "R$ " + Number(value || 0).toFixed(2).replace(".", ",");
   }
-  function safeParse(json, fallback) {
+
+  function safeJSON(str, fallback) {
     try {
-      return JSON.parse(json);
-    } catch {
+      return JSON.parse(str);
+    } catch (e) {
       return fallback;
     }
   }
 
-  function ensureDataReady() {
+  function getCart() {
+    return safeJSON(localStorage.getItem(CART_KEY) || "[]", []);
+  }
+
+  function setCart(cart) {
+    localStorage.setItem(CART_KEY, JSON.stringify(cart || []));
+    // dispara update do badge (app.js escuta storage também)
+    window.dispatchEvent(new Event("storage"));
+  }
+
+  async function ensureDataReady() {
     if (window.dataLayer && typeof window.dataLayer.initData === "function") {
-      window.dataLayer.initData();
+      try {
+        await window.dataLayer.initData();
+      } catch (e) {
+        console.warn("Falha ao carregar produtos (dataLayer.initData):", e);
+      }
     }
   }
 
-  function getProductsMap() {
-    const map = new Map();
-    const list =
-      window.dataLayer && typeof window.dataLayer.getProducts === "function"
-        ? window.dataLayer.getProducts()
-        : [];
-    list.forEach((p) => map.set(String(p.id), p));
-    return map;
+  function getProducts() {
+    if (!window.dataLayer || typeof window.dataLayer.getProducts !== "function") return [];
+    return window.dataLayer.getProducts() || [];
   }
 
-  function getCart() {
-    const raw = localStorage.getItem(CART_KEY);
-    const cart = safeParse(raw || "[]", []);
-    if (Array.isArray(cart)) return cart;
-    if (cart && typeof cart === "object") return Object.values(cart);
-    return [];
+  /**
+   * Resolve imagem do produto com base consistente:
+   * carrinho.html está dentro de /pages, então as imagens do projeto ficam em:
+   * ../assets/images/...
+   */
+  function resolveImgSrc(productImage) {
+    const basePath = "../assets/images/";
+
+    // Se você implementou resolveImageSrc no seu data.js, ele manda
+    // url absoluta do Supabase ou monta o caminho local certo.
+    if (window.dataLayer && typeof window.dataLayer.resolveImageSrc === "function") {
+      return window.dataLayer.resolveImageSrc(productImage || "", basePath);
+    }
+
+    const raw = String(productImage || "").trim();
+    if (!raw) return "";
+
+    // URL absoluta
+    if (/^https?:\/\//i.test(raw)) return raw;
+
+    // já veio com ../assets...
+    if (raw.startsWith("../")) return raw;
+
+    // padrão local
+    return basePath + raw;
   }
 
-  function saveCart(cart) {
-    localStorage.setItem(CART_KEY, JSON.stringify(cart));
-    updateCartBadges();
-  }
+  function attachSkeleton(img) {
+    img.setAttribute("data-skeleton", "true");
+    img.loading = "lazy";
+    img.decoding = "async";
 
-  function normalizeItem(item, productsMap) {
-    const pid = item.productId ?? item.id ?? item.produtoId ?? item.product_id;
-    const product = productsMap.get(String(pid));
-
-    return {
-      id: pid ?? product?.id ?? "",
-      nome: item.nome ?? product?.nome ?? "Produto",
-      preco: Number(item.preco ?? product?.preco ?? 0) || 0,
-      quantidade: Number(item.quantidade ?? item.qty ?? 1) || 1,
-      tamanho: item.tamanho ?? item.size ?? "",
-      cor: item.cor ?? item.color ?? "",
-      imagem: item.imagem ?? product?.imagem ?? "",
+    const done = () => {
+      img.classList.add("is-loaded");
+      img.removeAttribute("data-skeleton");
     };
+
+    if (img.complete && img.naturalWidth > 0) done();
+    else {
+      img.addEventListener("load", done, { once: true });
+      img.addEventListener("error", done, { once: true });
+    }
   }
 
-  function cartCount(cart) {
-    return cart.reduce((sum, it) => sum + (Number(it.quantidade) || 0), 0);
+  function findProductById(products, id) {
+    return products.find((p) => String(p.id) === String(id));
   }
 
-  function updateCartBadges() {
-    const cart = getCart();
-    const count = cartCount(cart);
+  function getPrice(p) {
+    const hasPromo = !!(p && p.promocao && p.preco_promocional);
+    return hasPromo ? Number(p.preco_promocional || 0) : Number(p.preco || 0);
+  }
 
-    qsa("[data-cart-badge]").forEach((b) => {
-      b.textContent = String(count);
-      if (count === 0) b.classList.add("is-empty");
-      else b.classList.remove("is-empty");
+  function calcTotals(cart, products) {
+    let subtotal = 0;
+
+    cart.forEach((item) => {
+      const prod = findProductById(products, item.id);
+      // Se não achou no catálogo, usa o que estiver no item (fallback)
+      const unit = prod ? getPrice(prod) : Number(item.preco || 0);
+      const qty = Number(item.quantidade || 1);
+      subtotal += unit * qty;
     });
+
+    return { subtotal, total: subtotal };
   }
 
-  function calcTotals(items) {
-    const subtotal = items.reduce((sum, it) => sum + it.preco * it.quantidade, 0);
-    const total = subtotal;
-    return { subtotal, total };
+  function renderEmpty(isEmpty) {
+    const emptyBox = qs("#cart-empty");
+    const summary = qs(".cart-summary");
+    const items = qs("#cart-items");
+
+    if (!emptyBox || !summary || !items) return;
+
+    if (isEmpty) {
+      emptyBox.style.display = "block";
+      summary.style.display = "none";
+      items.innerHTML = "";
+    } else {
+      emptyBox.style.display = "none";
+      summary.style.display = "block";
+    }
   }
 
-  function renderCart(items) {
-    const itemsEl = qs("#cart-items");
-    const subtotalEl = qs("#subtotal");
+  function createCartItemRow(item, prod) {
+    // dados do produto (fallback para item salvo)
+    const nome = (prod && prod.nome) || item.nome || "Pijama";
+    const tamanho = item.tamanho || item.size || item.variante || "";
+    const imagem = (prod && prod.imagem) || item.imagem || item.image || "";
+    const unitPrice = prod ? getPrice(prod) : Number(item.preco || 0);
+    const qty = Math.max(1, Number(item.quantidade || 1));
+    const lineTotal = unitPrice * qty;
+
+    const row = document.createElement("article");
+    row.className = "cart-item mini-card";
+    row.style.display = "flex";
+    row.style.alignItems = "center";
+    row.style.justifyContent = "space-between";
+    row.style.gap = "14px";
+    row.style.marginBottom = "12px";
+    row.style.padding = "14px";
+
+    // esquerda: imagem + infos
+    const left = document.createElement("div");
+    left.style.display = "flex";
+    left.style.alignItems = "center";
+    left.style.gap = "12px";
+    left.style.minWidth = "0";
+
+    const thumbWrap = document.createElement("div");
+    thumbWrap.className = "cart-thumb";
+    thumbWrap.style.width = "72px";
+    thumbWrap.style.height = "72px";
+    thumbWrap.style.borderRadius = "14px";
+    thumbWrap.style.overflow = "hidden";
+    thumbWrap.style.flex = "0 0 auto";
+    thumbWrap.style.background = "rgba(0,0,0,.04)";
+
+    const img = document.createElement("img");
+    img.alt = nome;
+    img.src = resolveImgSrc(imagem);
+    img.style.width = "100%";
+    img.style.height = "100%";
+    img.style.objectFit = "cover";
+    attachSkeleton(img);
+
+    thumbWrap.appendChild(img);
+
+    const info = document.createElement("div");
+    info.style.minWidth = "0";
+
+    const title = document.createElement("div");
+    title.textContent = nome;
+    title.style.fontWeight = "700";
+    title.style.whiteSpace = "nowrap";
+    title.style.overflow = "hidden";
+    title.style.textOverflow = "ellipsis";
+
+    const meta = document.createElement("div");
+    meta.style.marginTop = "4px";
+    meta.style.opacity = ".85";
+    meta.style.fontSize = ".92rem";
+    meta.textContent = tamanho ? `Tam: ${tamanho}` : "";
+
+    const price = document.createElement("div");
+    price.style.marginTop = "6px";
+    price.style.fontWeight = "800";
+    price.textContent = (unitPrice ? formatBRL(unitPrice) : "R$ 0,00");
+
+    info.appendChild(title);
+    if (tamanho) info.appendChild(meta);
+    info.appendChild(price);
+
+    left.appendChild(thumbWrap);
+    left.appendChild(info);
+
+    // direita: qtd + total + remover
+    const right = document.createElement("div");
+    right.style.display = "flex";
+    right.style.alignItems = "center";
+    right.style.gap = "10px";
+    right.style.flex = "0 0 auto";
+
+    const totalBox = document.createElement("div");
+    totalBox.style.textAlign = "right";
+    totalBox.style.minWidth = "92px";
+    totalBox.style.fontWeight = "800";
+    totalBox.textContent = formatBRL(lineTotal);
+
+    const qtyBox = document.createElement("div");
+    qtyBox.style.display = "flex";
+    qtyBox.style.alignItems = "center";
+    qtyBox.style.gap = "8px";
+
+    const btnMinus = document.createElement("button");
+    btnMinus.type = "button";
+    btnMinus.className = "btn";
+    btnMinus.textContent = "−";
+    btnMinus.style.width = "42px";
+    btnMinus.style.height = "42px";
+    btnMinus.style.borderRadius = "999px";
+    btnMinus.setAttribute("aria-label", "Diminuir quantidade");
+
+    const qtyText = document.createElement("strong");
+    qtyText.textContent = String(qty);
+    qtyText.style.minWidth = "18px";
+    qtyText.style.textAlign = "center";
+
+    const btnPlus = document.createElement("button");
+    btnPlus.type = "button";
+    btnPlus.className = "btn";
+    btnPlus.textContent = "+";
+    btnPlus.style.width = "42px";
+    btnPlus.style.height = "42px";
+    btnPlus.style.borderRadius = "999px";
+    btnPlus.setAttribute("aria-label", "Aumentar quantidade");
+
+    qtyBox.appendChild(btnMinus);
+    qtyBox.appendChild(qtyText);
+    qtyBox.appendChild(btnPlus);
+
+    const btnRemove = document.createElement("button");
+    btnRemove.type = "button";
+    btnRemove.className = "btn";
+    btnRemove.textContent = "Remover";
+    btnRemove.setAttribute("aria-label", "Remover item");
+
+    right.appendChild(totalBox);
+    right.appendChild(qtyBox);
+    right.appendChild(btnRemove);
+
+    // ações
+    btnMinus.addEventListener("click", () => {
+      const cart = getCart();
+      const idx = cart.findIndex((x) => String(x.id) === String(item.id) && String(x.tamanho || x.size || "") === String(tamanho || ""));
+      if (idx === -1) return;
+
+      cart[idx].quantidade = Math.max(1, Number(cart[idx].quantidade || 1) - 1);
+      setCart(cart);
+      render();
+    });
+
+    btnPlus.addEventListener("click", () => {
+      const cart = getCart();
+      const idx = cart.findIndex((x) => String(x.id) === String(item.id) && String(x.tamanho || x.size || "") === String(tamanho || ""));
+      if (idx === -1) return;
+
+      cart[idx].quantidade = Math.max(1, Number(cart[idx].quantidade || 1) + 1);
+      setCart(cart);
+      render();
+    });
+
+    btnRemove.addEventListener("click", () => {
+      const cart = getCart();
+      const next = cart.filter((x) => !(String(x.id) === String(item.id) && String(x.tamanho || x.size || "") === String(tamanho || "")));
+      setCart(next);
+      render();
+    });
+
+    row.appendChild(left);
+    row.appendChild(right);
+    return row;
+  }
+
+  function renderTotals(cart, products) {
+    const subEl = qs("#subtotal");
     const totalEl = qs("#total");
-    const checkoutLink = qs('.cart-summary a[href="checkout.html"]');
+    if (!subEl || !totalEl) return;
 
-    if (!itemsEl) return;
+    const { subtotal, total } = calcTotals(cart, products);
+    subEl.textContent = formatBRL(subtotal);
+    totalEl.textContent = formatBRL(total);
+  }
 
-    itemsEl.innerHTML = "";
+  async function render() {
+    const itemsBox = qs("#cart-items");
+    if (!itemsBox) return;
 
-    if (!items.length) {
-      itemsEl.innerHTML = `
-        <div class="cart-empty" style="text-align:center;padding:28px;border:1px dashed rgba(46,42,43,.18);border-radius:16px;background:rgba(255,255,255,.7)">
-          <h3 style="margin:0 0 10px 0">Seu carrinho está vazio 🧺</h3>
-          <p style="margin:0 0 16px 0">Volte para a página de pijamas e escolha o seu favorito 💗</p>
-          <a class="btn primary" href="produtos.html">Ver Pijamas</a>
-        </div>
-      `;
+    await ensureDataReady();
+    const products = getProducts();
 
-      if (subtotalEl) subtotalEl.textContent = "R$ 0,00";
-      if (totalEl) totalEl.textContent = "R$ 0,00";
-      if (checkoutLink) {
-        checkoutLink.classList.add("is-disabled");
-        checkoutLink.setAttribute("aria-disabled", "true");
-        checkoutLink.style.pointerEvents = "none";
-        checkoutLink.style.opacity = "0.6";
-      }
+    const cart = getCart();
+
+    if (!cart.length) {
+      renderEmpty(true);
+      renderTotals([], products);
       return;
     }
 
-    if (checkoutLink) {
-      checkoutLink.classList.remove("is-disabled");
-      checkoutLink.removeAttribute("aria-disabled");
-      checkoutLink.style.pointerEvents = "";
-      checkoutLink.style.opacity = "";
-      checkoutLink.classList.add("primary"); // deixa CTA bonito
-    }
+    renderEmpty(false);
+    itemsBox.innerHTML = "";
 
-    items.forEach((it) => {
-      const card = document.createElement("div");
-      card.className = "cart-item";
-      card.dataset.id = String(it.id);
-
-      const left = document.createElement("div");
-      left.style.display = "flex";
-      left.style.alignItems = "center";
-      left.style.gap = "14px";
-
-      const img = document.createElement("img");
-      img.alt = it.nome;
-      img.width = 78;
-      img.height = 78;
-      img.style.width = "78px";
-      img.style.height = "78px";
-      img.style.objectFit = "cover";
-      img.style.borderRadius = "14px";
-      img.style.border = "1px solid rgba(46,42,43,.10)";
-      img.setAttribute("loading", "lazy");
-      img.setAttribute("decoding", "async");
-
-      if (it.imagem) {
-        img.src = "../assets/images/" + it.imagem;
-        img.setAttribute("data-skeleton", "1"); // usa shimmer do seu CSS
-      } else {
-        img.src =
-          "data:image/svg+xml;charset=utf-8," +
-          encodeURIComponent(
-            `<svg xmlns="http://www.w3.org/2000/svg" width="78" height="78"><rect width="100%" height="100%" fill="#E8E7E2"/><text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" fill="#6F6A6C" font-size="10">SEM FOTO</text></svg>`
-          );
-      }
-
-      const info = document.createElement("div");
-      info.style.display = "grid";
-      info.style.gap = "6px";
-
-      const title = document.createElement("h3");
-      title.textContent = it.nome;
-      title.style.margin = "0";
-      title.style.fontSize = "1.05rem";
-
-      const meta = document.createElement("div");
-      meta.style.display = "flex";
-      meta.style.flexWrap = "wrap";
-      meta.style.gap = "8px";
-      meta.style.fontWeight = "700";
-      meta.style.fontSize = "13px";
-      meta.style.color = "rgba(46,42,43,.65)";
-
-      const metaParts = [];
-      if (it.tamanho) metaParts.push("Tam: " + it.tamanho);
-      if (it.cor) metaParts.push("Cor: " + it.cor);
-      meta.textContent = metaParts.length ? metaParts.join(" • ") : "";
-
-      const price = document.createElement("div");
-      price.textContent = formatBRL(it.preco);
-      price.style.fontWeight = "900";
-      price.style.color = "var(--brand)";
-      price.style.marginTop = "2px";
-
-      info.appendChild(title);
-      if (meta.textContent) info.appendChild(meta);
-      info.appendChild(price);
-
-      left.appendChild(img);
-      left.appendChild(info);
-
-      const right = document.createElement("div");
-      right.style.display = "flex";
-      right.style.flexDirection = "column";
-      right.style.alignItems = "flex-end";
-      right.style.gap = "10px";
-
-      const qtyRow = document.createElement("div");
-      qtyRow.style.display = "flex";
-      qtyRow.style.alignItems = "center";
-      qtyRow.style.gap = "8px";
-
-      const btnDec = document.createElement("button");
-      btnDec.type = "button";
-      btnDec.className = "btn";
-      btnDec.textContent = "−";
-      btnDec.dataset.action = "dec";
-      btnDec.style.width = "42px";
-      btnDec.style.padding = "0";
-      btnDec.style.justifyContent = "center";
-
-      const qty = document.createElement("span");
-      qty.textContent = String(it.quantidade);
-      qty.style.minWidth = "26px";
-      qty.style.textAlign = "center";
-      qty.style.fontWeight = "900";
-
-      const btnInc = document.createElement("button");
-      btnInc.type = "button";
-      btnInc.className = "btn";
-      btnInc.textContent = "+";
-      btnInc.dataset.action = "inc";
-      btnInc.style.width = "42px";
-      btnInc.style.padding = "0";
-      btnInc.style.justifyContent = "center";
-
-      qtyRow.appendChild(btnDec);
-      qtyRow.appendChild(qty);
-      qtyRow.appendChild(btnInc);
-
-      const remove = document.createElement("button");
-      remove.type = "button";
-      remove.className = "btn";
-      remove.dataset.action = "remove";
-      remove.textContent = "Remover";
-      remove.style.borderColor = "rgba(46,42,43,.14)";
-      remove.style.opacity = "0.92";
-
-      const lineTotal = document.createElement("div");
-      lineTotal.textContent = formatBRL(it.preco * it.quantidade);
-      lineTotal.style.fontWeight = "900";
-      lineTotal.style.color = "rgba(46,42,43,.92)";
-
-      right.appendChild(lineTotal);
-      right.appendChild(qtyRow);
-      right.appendChild(remove);
-
-      card.style.display = "flex";
-      card.style.justifyContent = "space-between";
-      card.style.alignItems = "center";
-      card.style.gap = "14px";
-
-      card.appendChild(left);
-      card.appendChild(right);
-
-      itemsEl.appendChild(card);
+    cart.forEach((item) => {
+      const prod = findProductById(products, item.id);
+      itemsBox.appendChild(createCartItemRow(item, prod));
     });
 
-    const { subtotal, total } = calcTotals(items);
-    if (subtotalEl) subtotalEl.textContent = formatBRL(subtotal);
-    if (totalEl) totalEl.textContent = formatBRL(total);
+    renderTotals(cart, products);
   }
 
-  function findIndex(cart, id) {
-    return cart.findIndex((it) => String(it.id ?? it.productId ?? it.produtoId) === String(id));
-  }
-
-  function initCart() {
-    ensureDataReady();
-    const productsMap = getProductsMap();
-
-    const itemsEl = qs("#cart-items");
-    if (!itemsEl) return;
-
-    function refresh() {
-      const rawCart = getCart();
-      const items = rawCart.map((it) => normalizeItem(it, productsMap));
-      renderCart(items);
-      updateCartBadges();
-    }
-
-    // eventos (+ / - / remover) por delegação
-    itemsEl.addEventListener("click", (e) => {
-      const btn = e.target.closest("button[data-action]");
-      if (!btn) return;
-
-      const card = e.target.closest(".cart-item");
-      if (!card) return;
-
-      const id = card.dataset.id;
-      const action = btn.dataset.action;
-
-      const cart = getCart();
-      const idx = findIndex(cart, id);
-      if (idx < 0) return;
-
-      const curQty = Number(cart[idx].quantidade ?? cart[idx].qty ?? 1) || 1;
-
-      if (action === "inc") {
-        cart[idx].quantidade = curQty + 1;
-      } else if (action === "dec") {
-        const next = curQty - 1;
-        if (next <= 0) cart.splice(idx, 1);
-        else cart[idx].quantidade = next;
-      } else if (action === "remove") {
-        cart.splice(idx, 1);
-      }
-
-      saveCart(cart);
-      refresh();
-    });
-
-    refresh();
-  }
-
-  document.addEventListener("DOMContentLoaded", initCart);
+  document.addEventListener("DOMContentLoaded", render);
 })();

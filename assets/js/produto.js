@@ -8,47 +8,40 @@
   }
 
   function formatBRL(value) {
-    const n = Number(value) || 0;
-    return "R$ " + n.toFixed(2).replace(".", ",");
+    return "R$ " + Number(value || 0).toFixed(2).replace(".", ",");
   }
 
   function getParam(name) {
-    const url = new URL(window.location.href);
-    return url.searchParams.get(name);
+    return new URL(window.location.href).searchParams.get(name);
+  }
+
+  async function ensureDataReady() {
+    if (window.dataLayer?.initData) await window.dataLayer.initData();
   }
 
   function getProducts() {
-    if (window.dataLayer && typeof window.dataLayer.getProducts === "function") {
-      return window.dataLayer.getProducts();
-    }
-    return [];
-  }
-
-  function resolveImage(imageValue) {
-    const basePath = "../assets/images/";
-    if (window.dataLayer && typeof window.dataLayer.resolveImageSrc === "function") {
-      return window.dataLayer.resolveImageSrc(imageValue, basePath);
-    }
-    return basePath + (imageValue || "");
+    return window.dataLayer?.getProducts ? window.dataLayer.getProducts() : [];
   }
 
   function getCart() {
     try {
       return JSON.parse(localStorage.getItem(CART_KEY) || "[]");
-    } catch (e) {
+    } catch {
       return [];
     }
   }
 
   function setCart(cart) {
     localStorage.setItem(CART_KEY, JSON.stringify(cart));
+    // força atualização do badge em outras partes do site
+    window.dispatchEvent(new Event("storage"));
   }
 
-  function addToCart(product, size, color) {
+  function addToCart(product, size) {
     const cart = getCart();
 
     const existing = cart.find(
-      (i) => String(i.id) === String(product.id) && i.size === size && i.color === color
+      (i) => String(i.id) === String(product.id) && String(i.size || "") === String(size || "")
     );
 
     if (existing) {
@@ -60,108 +53,204 @@
         preco: product.preco,
         imagem: product.imagem,
         quantidade: 1,
-        size,
-        color,
+        size: size || "",
       });
     }
 
     setCart(cart);
-
-    // atualiza badge
-    window.dispatchEvent(new Event("storage"));
   }
 
-  function buildWhatsAppLink(product, size, color) {
+  function buildWhatsAppLink(product, size) {
+    const url = window.location.href;
+    const precoTxt = formatBRL(product.preco);
+
+    // ✅ mensagem mais “conversão”
     const msg =
-      `Olá! Quero comprar este pijama:\n\n` +
+      `Oi! Quero esse pijama 😍\n\n` +
       `• Produto: ${product.nome}\n` +
-      (size ? `• Tamanho: ${size}\n` : "") +
-      (color ? `• Cor: ${color}\n` : "") +
-      `• Valor: ${formatBRL(product.preco)}\n\n` +
-      `Pode me ajudar a finalizar? 😊`;
+      `• Tamanho: ${size || "Ainda vou escolher"}\n` +
+      `• Valor: ${precoTxt}\n\n` +
+      `Link: ${url}\n\n` +
+      `Pode me ajudar a finalizar o pedido?`;
 
     return `https://wa.me/${WHATSAPP}?text=${encodeURIComponent(msg)}`;
   }
 
+  function applySEO(product, imageUrl) {
+    const nome = (product.nome || "Produto").trim();
+    const desc = (product.descricao || "").trim();
+
+    document.title = `${nome} | MI Pijamas`;
+
+    // meta description
+    const metaDesc = document.querySelector('meta[name="description"]');
+    if (metaDesc) {
+      metaDesc.setAttribute(
+        "content",
+        desc
+          ? `${nome} — ${desc.slice(0, 140)}`
+          : `${nome} — pijama feminino com conforto premium. Compre pelo WhatsApp.`
+      );
+    }
+
+    // og:title / og:description / og:image
+    const ogTitle = document.querySelector('meta[property="og:title"]');
+    if (ogTitle) ogTitle.setAttribute("content", `${nome} | MI Pijamas`);
+
+    const ogDesc = document.querySelector('meta[property="og:description"]');
+    if (ogDesc) {
+      ogDesc.setAttribute(
+        "content",
+        desc ? desc.slice(0, 160) : "Pijamas femininos com conforto premium. Compre pelo WhatsApp."
+      );
+    }
+
+    const ogImg = document.querySelector('meta[property="og:image"]');
+    if (ogImg && imageUrl) ogImg.setAttribute("content", imageUrl);
+
+    // JSON-LD Product
+    const jsonLd = document.getElementById("product-jsonld");
+    if (jsonLd) {
+      const data = {
+        "@context": "https://schema.org",
+        "@type": "Product",
+        name: nome,
+        description: desc || undefined,
+        image: imageUrl ? [imageUrl] : undefined,
+        brand: { "@type": "Brand", name: "MI Pijamas" },
+        offers: {
+          "@type": "Offer",
+          priceCurrency: "BRL",
+          price: Number(product.preco || 0),
+          availability: "https://schema.org/InStock",
+          url: window.location.href,
+        },
+      };
+      jsonLd.textContent = JSON.stringify(data);
+    }
+  }
+
+  function setBtnDisabled(btn, disabled) {
+    if (!btn) return;
+    if (btn.tagName === "A") {
+      btn.classList.toggle("is-disabled", !!disabled);
+      btn.setAttribute("aria-disabled", disabled ? "true" : "false");
+      if (disabled) btn.removeAttribute("href");
+    } else {
+      btn.disabled = !!disabled;
+      btn.classList.toggle("is-disabled", !!disabled);
+    }
+  }
+
   function render(product) {
-    // ✅ IDs compatíveis com seu HTML atual + fallback pros antigos
+    // IDs do seu HTML
     const img = qs("#product-image");
     const name = qs("#product-name");
     const price = qs("#product-price");
-
-    const desc =
-      qs("#product-description") || qs("#product-desc") || qs("#product-description");
-
+    const desc = qs("#product-desc"); // ✅ correto no seu HTML
     const btnCart = qs("#add-to-cart");
     const btnZap = qs("#buy-whatsapp");
+    const sizeSel = qs("#variant-size"); // ✅ correto no seu HTML
 
-    const sizeSel = qs("#product-size") || qs("#variant-size");
-    const colorSel = qs("#product-color") || qs("#variant-color"); // opcional
+    // Sticky (você tem mais de um no HTML, então pegamos o primeiro que aparecer)
+    const stickyPrice = qs("#sticky-price");
+    const stickyHint = qs("#sticky-hint");
 
-    if (!img || !name || !price || !btnCart || !btnZap) return;
+    const stickyAdd = qs("#sticky-add"); // aparece duplicado no seu HTML, mas o querySelector pega o primeiro
+    const stickyWhats = qs("#sticky-whats") || qs("#sticky-zap"); // compatível com seus dois nomes
 
-    name.textContent = product.nome;
+    if (!img || !name || !price || !btnCart || !btnZap || !sizeSel) return;
+
+    name.textContent = product.nome || "Pijama";
     price.textContent = formatBRL(product.preco);
+    if (stickyPrice) stickyPrice.textContent = formatBRL(product.preco);
 
     if (desc) {
       desc.textContent =
-        product.descricao ||
-        "Um pijama pensado para conforto e elegância, com toque delicado e caimento perfeito.";
+        product.descricao || "Pijama confortável, pensado para noites leves e cheias de aconchego.";
     }
 
-    // imagem: URL (Storage) OU local
-    img.setAttribute("data-skeleton", "true");
-    img.src = resolveImage(product.imagem);
-    img.alt = product.nome;
+    // imagem (local ou URL)
+    const base = "../assets/images/";
+    const raw = String(product.imagem || "").trim();
+    const imageUrl = raw.startsWith("http") ? raw : base + raw;
 
-    function getSelectedSize() {
-      return sizeSel ? String(sizeSel.value || "").trim() : "";
+    img.src = imageUrl;
+    img.alt = product.nome || "Produto";
+
+    // SEO + compartilhamento
+    applySEO(product, imageUrl);
+
+    function syncState() {
+      const size = (sizeSel.value || "").trim();
+      const hasSize = !!size;
+
+      const link = buildWhatsAppLink(product, size);
+
+      // WhatsApp principal
+      btnZap.href = link;
+      btnZap.setAttribute("target", "_blank");
+      btnZap.setAttribute("rel", "noopener noreferrer");
+
+      // Sticky WhatsApp
+      if (stickyWhats) {
+        stickyWhats.setAttribute("target", "_blank");
+        stickyWhats.setAttribute("rel", "noopener noreferrer");
+        if (hasSize) stickyWhats.href = link;
+      }
+
+      // Hints + disable
+      if (stickyHint) stickyHint.textContent = hasSize ? "Pronto para comprar" : "Selecione o tamanho";
+
+      // Só libera sticky se tiver tamanho
+      if (stickyAdd) setBtnDisabled(stickyAdd, !hasSize);
+      if (stickyWhats) setBtnDisabled(stickyWhats, !hasSize);
     }
-    function getSelectedColor() {
-      return colorSel ? String(colorSel.value || "").trim() : "";
-    }
 
-    const syncWhats = () => {
-      const size = getSelectedSize();
-      const color = getSelectedColor();
-      btnZap.href = buildWhatsAppLink(product, size, color);
-    };
+    // estado inicial
+    syncState();
+    sizeSel.addEventListener("change", syncState);
 
-    // ✅ garante que o <a> do WhatsApp sempre tenha href
-    syncWhats();
-
-    if (sizeSel) sizeSel.addEventListener("change", syncWhats);
-    if (colorSel) colorSel.addEventListener("change", syncWhats);
-
-    btnCart.addEventListener("click", () => {
-      const size = getSelectedSize();
-      const color = getSelectedColor();
-
-      // ✅ se existir select de tamanho, exige selecionar
-      if (sizeSel && !size) {
-        alert("Selecione um tamanho para continuar 🙂");
+    function onAdd() {
+      const size = (sizeSel.value || "").trim();
+      if (!size) {
+        alert("Selecione um tamanho antes de adicionar ao carrinho.");
+        sizeSel.scrollIntoView({ behavior: "smooth", block: "center" });
         sizeSel.focus();
         return;
       }
 
-      addToCart(product, size, color);
+      addToCart(product, size);
 
+      // feedback
       btnCart.textContent = "Adicionado ✓";
       btnCart.disabled = true;
+
+      if (stickyAdd && stickyAdd.tagName !== "A") {
+        stickyAdd.textContent = "Adicionado ✓";
+        stickyAdd.disabled = true;
+      }
 
       setTimeout(() => {
         btnCart.textContent = "🛍️ Adicionar ao carrinho";
         btnCart.disabled = false;
+
+        if (stickyAdd && stickyAdd.tagName !== "A") {
+          stickyAdd.textContent = "🛍️ Adicionar";
+          stickyAdd.disabled = false;
+        }
       }, 900);
-    });
+    }
+
+    btnCart.addEventListener("click", onAdd);
+    if (stickyAdd && stickyAdd.tagName !== "A") stickyAdd.addEventListener("click", onAdd);
   }
 
   function renderNotFound() {
-    const wrap = qs(".product-page") || qs("main .container");
+    const wrap = qs(".product-detail");
     if (!wrap) return;
 
     wrap.innerHTML = `
-      <a class="back-link" href="produtos.html">← Voltar para Pijamas</a>
       <div class="mini-card" style="padding:18px;">
         <h3>Produto não encontrado</h3>
         <p>Esse pijama não está disponível no momento.</p>
@@ -171,14 +260,7 @@
   }
 
   document.addEventListener("DOMContentLoaded", async () => {
-    // ✅ espera carregar produtos do Supabase antes de buscar pelo ID
-    if (window.dataLayer && typeof window.dataLayer.initData === "function") {
-      try {
-        await window.dataLayer.initData();
-      } catch (e) {
-        console.warn("Falha ao carregar dados:", e);
-      }
-    }
+    await ensureDataReady();
 
     const id = getParam("id");
     const products = getProducts().filter((p) => p.ativo);

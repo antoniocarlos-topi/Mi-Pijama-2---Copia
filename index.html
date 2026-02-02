@@ -4,7 +4,9 @@
   <meta charset="UTF-8">
   <title>MI Pijamas</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
   <link rel="stylesheet" href="assets/css/styles.css">
+  <link rel="icon" href="assets/image/mi-pijama-logo.jpg" type="image/jpeg">
 </head>
 
 <body>
@@ -17,17 +19,11 @@
 <header class="site-header">
   <div class="container header-row">
     <a class="brand" href="index.html" aria-label="MI Pijamas - Início">
-      <span class="brand-dot"></span>
+      <img class="brand-logo" src="assets/image/mi-pijama-logo.jpg" alt="MI Pijamas">
       <span class="brand-name">MI Pijamas</span>
     </a>
 
-    <button
-      class="menu-toggle"
-      type="button"
-      aria-label="Abrir menu"
-      aria-expanded="false"
-      aria-controls="mobile-menu"
-    >
+    <button class="menu-toggle" type="button" aria-label="Abrir menu" aria-expanded="false" aria-controls="mobile-menu">
       <span></span><span></span><span></span>
     </button>
 
@@ -37,10 +33,10 @@
         <li><a href="pages/produtos.html">Pijamas</a></li>
         <li><a href="pages/sobre.html">Sobre</a></li>
         <li><a href="pages/contato.html">Contato</a></li>
+        <li><a href="pages/admin.html">Admin</a></li>
         <li>
           <a class="nav-cart" href="pages/carrinho.html">
-            Carrinho
-            <span class="cart-badge" data-cart-badge aria-label="Itens no carrinho">0</span>
+            Carrinho <span class="cart-badge" data-cart-badge aria-label="Itens no carrinho">0</span>
           </a>
         </li>
       </ul>
@@ -52,10 +48,7 @@
   <aside class="mobile-menu" id="mobile-menu" aria-hidden="true">
     <div class="mobile-menu-header">
       <span class="mobile-menu-title">Menu</span>
-
-      <button class="menu-close" type="button" aria-label="Fechar menu" data-menu-close>
-        ✕
-      </button>
+      <button class="menu-close" type="button" aria-label="Fechar menu" data-menu-close>✕</button>
     </div>
 
     <nav class="mobile-nav" aria-label="Menu mobile">
@@ -63,6 +56,7 @@
       <a href="pages/produtos.html">Pijamas</a>
       <a href="pages/sobre.html">Sobre</a>
       <a href="pages/contato.html">Contato</a>
+      <a href="pages/admin.html">Admin</a>
       <a class="nav-cart" href="pages/carrinho.html">
         Carrinho <span class="cart-badge" data-cart-badge>0</span>
       </a>
@@ -86,39 +80,36 @@
           id="home-search"
           placeholder="Buscar pijama pelo nome..."
           autocomplete="off"
+          style="width:100%;"
+          aria-expanded="false"
         />
-        <div id="home-search-results" class="search-results"></div>
+
+        <!-- resultados -->
+        <div id="home-search-results" class="search-results" style="display:none;"></div>
       </div>
     </section>
 
-    <!-- ✅ BANNER PROMO (CARROSSEL) -->
-    <section class="section" style="margin-top:10px;">
-      <div id="promo-banner" class="promo-banner" aria-label="Promoções" role="region">
-        <a id="promo-banner-link" class="promo-banner__link" href="pages/produtos.html" aria-label="Ver promoção">
-          <div class="promo-banner__media">
-            <img id="promo-banner-img" data-skeleton alt="Promoção MI Pijamas" />
-          </div>
+    <!-- ✅ OVERLAY CORRETO DA BUSCA (para não ficar por baixo do site) -->
+    <!-- (o home.js que te passei procura por #search-overlay) -->
+    <div id="search-overlay" aria-hidden="true" style="display:none;"></div>
 
-          <div class="promo-banner__content">
-            <div class="promo-banner__top">
-              <span class="badge-promo">PROMO</span>
-              <span class="promo-banner__hint">Deslize →</span>
-            </div>
+  <!-- CARROSSEL HOME -->
+<section class="section" style="margin-top:10px;">
+  <div id="home-carousel">
+    <div style="display:flex; justify-content:space-between; align-items:center; gap:10px; margin-bottom:6px;">
+      <h2 style="text-align:left; margin:0;">Destaques</h2>
 
-            <h3 id="promo-banner-title" class="promo-banner__title">Promoções</h3>
-
-            <div id="promo-banner-price" class="promo-banner__price"></div>
-
-            <div class="promo-banner__cta">
-              <span class="btn primary promo-banner__btn">Ver agora</span>
-              <span class="promo-banner__sub">Troca automática a cada 5s</span>
-            </div>
-          </div>
-        </a>
-
-        <div class="promo-dots" id="promo-dots" aria-label="Indicador do carrossel"></div>
+      <div style="display:flex; gap:8px;">
+        <button id="carousel-prev" type="button" aria-label="Anterior">‹</button>
+        <button id="carousel-next" type="button" aria-label="Próximo">›</button>
       </div>
-    </section>
+    </div>
+
+    <div id="home-carousel-track" aria-label="Carrossel de pijamas"></div>
+    <div id="home-carousel-dots" aria-label="Indicadores do carrossel"></div>
+  </div>
+</section>
+
 
     <!-- HERO -->
     <section class="hero">
@@ -138,28 +129,9 @@
       </div>
     </section>
 
-    <!-- POR QUE ESCOLHER -->
+    <!-- SELECIONADOS -->
     <section class="section">
-      <h2>Por que escolher a MI Pijamas?</h2>
-      <div class="grid-3">
-        <div class="mini-card">
-          <h3>Conforto premium</h3>
-          <p>Modelos pensados para o seu descanso, com caimento e toque suave.</p>
-        </div>
-        <div class="mini-card">
-          <h3>Feminino e sofisticado</h3>
-          <p>Estilo clean e delicado, perfeito para se sentir linda em casa.</p>
-        </div>
-        <div class="mini-card">
-          <h3>Atendimento no WhatsApp</h3>
-          <p>Ajuda rápida para escolher tamanho, tirar dúvidas e finalizar o pedido.</p>
-        </div>
-      </div>
-    </section>
-
-    <!-- DESTAQUES -->
-    <section class="section">
-      <h2 style="text-align:left;">Destaques</h2>
+      <h2 style="text-align:left;">Selecionados</h2>
       <div class="highlights" id="home-highlights"></div>
     </section>
 
@@ -181,6 +153,7 @@
   </div>
 </footer>
 
+<!-- MOBILE CTA com ADMIN -->
 <nav class="mobile-cta" aria-label="Ações rápidas">
   <a class="mobile-cta__item" href="pages/produtos.html">
     <span class="mobile-cta__icon">🛍️</span>
@@ -196,6 +169,11 @@
     <span class="mobile-cta__icon">🧺</span>
     <span class="mobile-cta__text">Carrinho</span>
     <span class="mobile-cta__badge" data-cart-badge>0</span>
+  </a>
+
+  <a class="mobile-cta__item" href="pages/admin.html">
+    <span class="mobile-cta__icon">⚙️</span>
+    <span class="mobile-cta__text">Admin</span>
   </a>
 </nav>
 

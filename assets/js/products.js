@@ -4,6 +4,25 @@
     return "R$ " + Number(value || 0).toFixed(2).replace(".", ",");
   }
 
+  function renderProductsSkeleton(container, n = 8) {
+    if (!container) return;
+    container.innerHTML = Array.from({ length: n })
+      .map(
+        () => `
+          <article class="skeleton-card" aria-hidden="true">
+            <div class="skeleton-img"></div>
+            <div class="skeleton-line lg"></div>
+            <div class="skeleton-line sm"></div>
+            <div class="skeleton-actions">
+              <div class="skeleton-btn"></div>
+              <div class="skeleton-btn"></div>
+            </div>
+          </article>
+        `
+      )
+      .join("");
+  }
+
   function attachImageLoader(img) {
     img.setAttribute("data-skeleton", "true");
 
@@ -34,6 +53,9 @@
     const grid = document.getElementById("product-list");
     if (!grid) return;
 
+    // ✅ skeleton aparece imediatamente
+    renderProductsSkeleton(grid, 8);
+
     // ✅ espera Supabase
     if (window.dataLayer && typeof window.dataLayer.initData === "function") {
       try {
@@ -56,6 +78,9 @@
       return;
     }
 
+    // (opcional) ordena por ID crescente
+    products.sort((a, b) => Number(a.id) - Number(b.id));
+
     products.forEach((product) => {
       const isPromo = !!(product.promocao && product.preco_promocional);
 
@@ -73,15 +98,15 @@
       const link = document.createElement("a");
       link.className = "product-media";
       link.href = "produto.html?id=" + product.id;
-      link.setAttribute("aria-label", "Ver pijama: " + product.nome);
+      link.setAttribute("aria-label", "Ver pijama: " + (product.nome || "Pijama"));
 
       const img = document.createElement("img");
       const basePath = "../assets/images/";
       img.src =
         window.dataLayer && typeof window.dataLayer.resolveImageSrc === "function"
           ? window.dataLayer.resolveImageSrc(product.imagem, basePath)
-          : basePath + (product.imagem || "");
-      img.alt = product.nome;
+          : (String(product.imagem || "").startsWith("http") ? product.imagem : basePath + (product.imagem || ""));
+      img.alt = product.nome || "Pijama";
       img.loading = "lazy";
       img.decoding = "async";
       attachImageLoader(img);
@@ -91,7 +116,7 @@
       body.className = "product-body";
 
       const title = document.createElement("h3");
-      title.textContent = product.nome;
+      title.textContent = product.nome || "Pijama";
 
       // preço premium (promo + riscado)
       const priceWrap = document.createElement("div");
