@@ -4141,3 +4141,151 @@ body {
     line-height: 1 !important;
   }
 }
+/* ============================
+   ✅ MOBILE CTA (barra inferior)
+   ============================ */
+.mobile-cta{
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 9998;
+
+  display: flex;
+  gap: 10px;
+  padding: 10px 12px;
+
+  /* evita "torta" por conta de largura e sombras */
+  box-sizing: border-box;
+}
+
+.mobile-cta__item{
+  flex: 1;              /* todos iguais */
+  min-width: 0;         /* impede estourar pro lado */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+
+  padding: 10px 10px;
+  border-radius: 16px;
+
+  text-decoration: none;
+  box-sizing: border-box;
+  overflow: hidden;     /* texto não sai pra fora */
+}
+
+.mobile-cta__icon{
+  flex: 0 0 auto;
+  font-size: 18px;
+  line-height: 1;
+}
+
+.mobile-cta__text{
+  font-size: 14px;
+  line-height: 1;
+  white-space: nowrap;       /* mantém em 1 linha */
+  overflow: hidden;
+  text-overflow: ellipsis;   /* caso não caiba */
+}
+
+/* Badge do carrinho (número) */
+.mobile-cta__badge{
+  position: absolute;
+  transform: translate(10px, -10px);
+  /* se seu badge já tem estilo, pode manter.
+     aqui é só pra garantir que ele fique no canto certo */
+}
+
+/* garante que a página não fique por trás da barra */
+body{
+  padding-bottom: 92px;
+}
+
+/* Em telas bem pequenas, diminui um pouco pra caber certinho */
+@media (max-width: 380px){
+  .mobile-cta{
+    gap: 8px;
+    padding: 8px 10px;
+  }
+  .mobile-cta__item{
+    padding: 9px 8px;
+  }
+  .mobile-cta__text{
+    font-size: 13px;
+  }
+}
+/* ============================
+   ✅ MENU MOBILE (3 pontinhos)
+   ============================ */
+
+/* overlay (fundo escurecido) */
+.menu-overlay{
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.25);
+  z-index: 9996;
+  display: none;
+}
+
+/* painel do menu */
+.mobile-menu{
+  position: fixed;
+  top: 0;
+  right: 0;
+  width: min(86vw, 360px);
+  height: 100dvh;              /* 🔥 importante no mobile */
+  background: #fff;
+  z-index: 9997;
+
+  overflow: auto;              /* 🔥 não corta os links */
+  -webkit-overflow-scrolling: touch;
+
+  transform: translateX(110%);
+  transition: transform .25s ease;
+}
+
+/* estado aberto (controlado por classe no body) */
+body.is-menu-open .menu-overlay{
+  display: block;
+}
+
+body.is-menu-open .mobile-menu{
+  transform: translateX(0);
+}
+
+/* header do menu */
+.mobile-menu-header{
+  position: sticky;
+  top: 0;
+  background: #fff;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 14px;
+  border-bottom: 1px solid rgba(0,0,0,.06);
+}
+
+/* links do menu */
+.mobile-nav{
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 14px;
+}
+
+.mobile-nav a{
+  display: block;              /* 🔥 garante que aparece */
+  padding: 12px 12px;
+  border-radius: 12px;
+  text-decoration: none;
+}
+
+/* rodapé do menu */
+.mobile-menu-footer{
+  padding: 14px;
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
