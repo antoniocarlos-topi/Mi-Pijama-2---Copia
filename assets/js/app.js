@@ -181,3 +181,34 @@
     app.init();
   });
 })();
+
+// ✅ MENU MOBILE (abre/fecha)
+document.addEventListener("DOMContentLoaded", () => {
+  const body = document.body;
+  const btnOpen = document.querySelector(".menu-toggle");
+  const btnClose = document.querySelector(".menu-close");
+  const overlay = document.querySelector(".menu-overlay");
+
+  const mobileMenu = document.getElementById("mobile-menu");
+
+  function openMenu() {
+    body.classList.add("is-menu-open");
+    if (btnOpen) btnOpen.setAttribute("aria-expanded", "true");
+    if (mobileMenu) mobileMenu.setAttribute("aria-hidden", "false");
+  }
+
+  function closeMenu() {
+    body.classList.remove("is-menu-open");
+    if (btnOpen) btnOpen.setAttribute("aria-expanded", "false");
+    if (mobileMenu) mobileMenu.setAttribute("aria-hidden", "true");
+  }
+
+  if (btnOpen) btnOpen.addEventListener("click", openMenu);
+  if (btnClose) btnClose.addEventListener("click", closeMenu);
+  if (overlay) overlay.addEventListener("click", closeMenu);
+
+  // ESC fecha (bom no desktop)
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") closeMenu();
+  });
+});
