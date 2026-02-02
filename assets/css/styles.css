@@ -4400,3 +4400,7 @@ body.is-menu-open .mobile-menu{
   }
 }
 
+/* ❌ Remove barra mobile inferior de todas as páginas */
+.mobile-cta {
+  display: none !important;
+}
