@@ -328,27 +328,11 @@
       buy.textContent = "Comprar";
 
       buyWrap.appendChild(buy);
+slide.appendChild(img);
+slide.appendChild(buyWrap);
+track.appendChild(slide);
 
-      // meta (nome e preço) no canto inferior direito
-      const meta = document.createElement("div");
-      meta.className = "carousel-meta";
 
-      const name = document.createElement("div");
-      name.className = "carousel-name";
-      name.textContent = p.nome || "Pijama";
-
-      const price = document.createElement("div");
-      price.className = "carousel-price";
-      price.textContent = getPriceText(p);
-
-      meta.appendChild(name);
-      meta.appendChild(price);
-
-      slide.appendChild(img);
-      slide.appendChild(buyWrap);
-      slide.appendChild(meta);
-
-      track.appendChild(slide);
 
       // dots
       const dot = document.createElement("button");

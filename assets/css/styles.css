@@ -3611,3 +3611,92 @@ body {
   position: relative;
   z-index: 1;
 }
+html, body {
+  width: 100%;
+  overflow-x: hidden;
+}
+.mobile-menu {
+  position: fixed;
+  top: 0;
+  right: 0;
+  height: 100vh;
+  width: min(86vw, 360px);
+  background: #fff;
+  transform: translateX(110%); /* bem fora */
+  transition: transform .25s ease;
+  z-index: 999999;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.mobile-menu.is-open {
+  transform: translateX(0);
+}
+/* impede que o navegador interprete swipe horizontal como "rolagem do layout" */
+body {
+  touch-action: pan-y;
+}
+/* =========================
+   HOME CAROUSEL (portrait / sem cortar)
+   ========================= */
+
+#home-carousel {
+  margin-top: 12px;
+}
+
+/* a área que “segura” cada slide */
+#home-carousel-track {
+  display: flex;
+  gap: 12px;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+  padding-bottom: 6px;
+}
+
+/* cada slide */
+.carousel-slide {
+  position: relative;
+  flex: 0 0 100%;
+  scroll-snap-align: start;
+  border-radius: 18px;
+  overflow: hidden;
+  background: rgba(0,0,0,.03);
+  border: 1px solid rgba(46,42,43,.12);
+
+  /* ✅ formato “foto de pijama” (retrato) */
+  aspect-ratio: 3 / 4;
+}
+
+/* ✅ IMAGEM: não corta (mostra inteira) */
+.carousel-slide img {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: contain;   /* <<<<<< isso impede de cortar */
+  object-position: center;
+  background: #fff;      /* caso sobre borda, fica bonito */
+}
+
+/* botões prev/next por cima */
+#carousel-prev,
+#carousel-next {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 10;
+}
+#carousel-prev { left: 10px; }
+#carousel-next { right: 10px; }
+.carousel-buy {
+  position: absolute;
+  left: 12px;
+  bottom: 12px;
+  z-index: 11;
+}
+
+.carousel-buy .btn {
+  padding: 10px 14px;
+  border-radius: 14px;
+  box-shadow: 0 14px 30px rgba(0,0,0,.18);
+}
