@@ -3816,3 +3816,7 @@ body {
   border-radius: 999px;
   font-size: .85rem;
 }
+.mobile-menu * {
+  position: relative;
+  z-index: 1;
+}
